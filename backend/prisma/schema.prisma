@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPPORT
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String?
+  email           String   @unique
+  passwordHash    String
+  role            UserRole @default(CUSTOMER)
+  emailVerifiedAt DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  emailOtps    EmailVerificationOtp[]
+  passwordOtps PasswordResetOtp[]
+}
+
+model EmailVerificationOtp {
+  id        String    @id @default(uuid())
+  userId    String
+  otpHash   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetOtp {
+  id        String    @id @default(uuid())
+  userId    String
+  otpHash   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
