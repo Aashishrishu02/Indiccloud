@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,11 +13,23 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
+
 import api from "./api";
+import Dashboard from "./Dashboard";
 
 type Screen = "login" | "register" | "verify";
 
 function App() {
+  const pathname = window.location.pathname.replace(/\/+$/, "");
+
+  if (pathname === "/dashboard") {
+    return <Dashboard />;
+  }
+
+  return <AuthApp />;
+}
+
+function AuthApp() {
   const [screen, setScreen] = useState<Screen>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,7 +54,7 @@ function App() {
     setMessage("");
   };
 
-  const login = async (e: React.FormEvent) => {
+  const login = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetMessages();
     setLoading(true);
@@ -52,21 +65,28 @@ function App() {
         password: form.password,
       });
 
-      sessionStorage.setItem("indiccloud_token", response.data.token);
-      setMessage("Login successful!");
+      if (!response.data?.token) {
+        throw new Error("Login response did not contain an authentication token.");
+      }
 
-      // Dashboard route will be connected in the next step.
+      sessionStorage.setItem(
+        "indiccloud_token",
+        response.data.token
+      );
+
       window.location.href = "/dashboard";
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Unable to login. Please check your credentials."
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to login. Please check your credentials."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (e: React.FormEvent) => {
+  const register = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetMessages();
 
@@ -98,13 +118,15 @@ function App() {
       setScreen("verify");
       setMessage("Verification OTP has been sent to your email.");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed.");
+      setError(
+        err.response?.data?.message || "Registration failed."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const verifyOtp = async (e: React.FormEvent) => {
+  const verifyOtp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetMessages();
     setLoading(true);
@@ -117,10 +139,14 @@ function App() {
 
       setMessage("Account created successfully. Please login.");
       setScreen("login");
+
       update("password", "");
+      update("confirmPassword", "");
       update("otp", "");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid or expired OTP.");
+      setError(
+        err.response?.data?.message || "Invalid or expired OTP."
+      );
     } finally {
       setLoading(false);
     }
@@ -134,9 +160,12 @@ function App() {
       await api.post("/register/resend-otp", {
         email: form.email,
       });
+
       setMessage("A new OTP has been sent.");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to resend OTP.");
+      setError(
+        err.response?.data?.message || "Unable to resend OTP."
+      );
     } finally {
       setLoading(false);
     }
@@ -182,6 +211,7 @@ function App() {
               <p className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-400">
                 Sovereign Cloud
               </p>
+
               <h1 className="mt-1 text-xl font-bold">
                 {screen === "login" && "Console Access"}
                 {screen === "register" && "Create Account"}
@@ -193,10 +223,15 @@ function App() {
           {screen === "login" && (
             <>
               <div className="mb-7 grid grid-cols-2 rounded-lg bg-[#080e1b] p-1">
-                <button className="rounded-md bg-blue-600 py-2.5 text-xs font-bold text-white">
+                <button
+                  type="button"
+                  className="rounded-md bg-blue-600 py-2.5 text-xs font-bold text-white"
+                >
                   Sign In
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => {
                     resetMessages();
                     setScreen("register");
@@ -210,8 +245,13 @@ function App() {
               <form onSubmit={login} className="space-y-5">
                 <div>
                   <label className={labelClass}>Work Email</label>
+
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={17} />
+                    <Mail
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                      size={17}
+                    />
+
                     <input
                       className={`${inputClass} pl-11`}
                       type="email"
@@ -226,9 +266,14 @@ function App() {
                 <div>
                   <div className="mb-2 flex justify-between">
                     <label className={labelClass}>Password</label>
+
                     <button
                       type="button"
-                      onClick={() => setError("Password recovery will be added in the next authentication step.")}
+                      onClick={() =>
+                        setError(
+                          "Password recovery will be added in the next authentication step."
+                        )
+                      }
                       className="text-xs text-blue-400 hover:text-blue-300"
                     >
                       Forgot Password?
@@ -236,7 +281,11 @@ function App() {
                   </div>
 
                   <div className="relative">
-                    <LockKeyhole className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={17} />
+                    <LockKeyhole
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                      size={17}
+                    />
+
                     <input
                       className={`${inputClass} pl-11 pr-12`}
                       type={showPassword ? "text" : "password"}
@@ -245,12 +294,17 @@ function App() {
                       onChange={(e) => update("password", e.target.value)}
                       required
                     />
+
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -268,7 +322,11 @@ function App() {
                 )}
 
                 <button className={primaryButton} disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : "Authenticate Session"}
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Authenticate Session"
+                  )}
                   {!loading && <ArrowRight size={17} />}
                 </button>
               </form>
@@ -278,6 +336,7 @@ function App() {
           {screen === "register" && (
             <>
               <button
+                type="button"
                 onClick={() => {
                   resetMessages();
                   setScreen("login");
@@ -343,7 +402,9 @@ function App() {
                     type="password"
                     placeholder="Confirm your password"
                     value={form.confirmPassword}
-                    onChange={(e) => update("confirmPassword", e.target.value)}
+                    onChange={(e) =>
+                      update("confirmPassword", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -361,7 +422,11 @@ function App() {
                 )}
 
                 <button className={primaryButton} disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : "Create Account & Verify Email"}
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Create Account & Verify Email"
+                  )}
                   {!loading && <ArrowRight size={17} />}
                 </button>
               </form>
@@ -371,6 +436,7 @@ function App() {
           {screen === "verify" && (
             <>
               <button
+                type="button"
                 onClick={() => {
                   resetMessages();
                   setScreen("register");
@@ -382,12 +448,15 @@ function App() {
 
               <p className="mb-6 text-sm leading-6 text-slate-400">
                 Enter the verification code sent to{" "}
-                <span className="font-semibold text-white">{form.email}</span>.
+                <span className="font-semibold text-white">
+                  {form.email}
+                </span>.
               </p>
 
               <form onSubmit={verifyOtp} className="space-y-5">
                 <div>
                   <label className={labelClass}>One-Time Password</label>
+
                   <input
                     className={`${inputClass} text-center text-2xl font-bold tracking-[12px]`}
                     type="text"
@@ -415,7 +484,11 @@ function App() {
                 )}
 
                 <button className={primaryButton} disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : "Verify Email"}
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Verify Email"
+                  )}
                   {!loading && <CheckCircle2 size={17} />}
                 </button>
 
@@ -432,7 +505,11 @@ function App() {
           )}
 
           <div className="mt-7 flex items-start gap-3 rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-4">
-            <ShieldCheck className="mt-0.5 shrink-0 text-emerald-400" size={18} />
+            <ShieldCheck
+              className="mt-0.5 shrink-0 text-emerald-400"
+              size={18}
+            />
+
             <p className="text-[11px] leading-5 text-slate-400">
               Your account authentication is handled by the IndicCloud
               backend. Never share your password or verification code.

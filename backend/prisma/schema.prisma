@@ -14,18 +14,19 @@ enum UserRole {
 }
 
 model User {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   name            String?
-  email           String   @unique
+  email           String    @unique
   passwordHash    String
-  role            UserRole @default(CUSTOMER)
+  role            UserRole  @default(CUSTOMER)
   emailVerifiedAt DateTime?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   emailOtps    EmailVerificationOtp[]
   passwordOtps PasswordResetOtp[]
+  vpsInstances VPSInstance[]
 }
 
 model EmailVerificationOtp {
@@ -52,4 +53,24 @@ model PasswordResetOtp {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model VPSInstance {
+  id              String    @id @default(uuid())
+  userId          String
+  provider        String    @default("SMARTVPS")
+  providerVpsId   String?   @unique
+  ipAddress       String    @unique
+  hostname        String?
+  operatingSystem String?
+  ram             Int?
+  status          String    @default("PENDING")
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
 }

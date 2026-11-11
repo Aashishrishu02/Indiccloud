@@ -208,8 +208,6 @@ export class AuthService {
   }
 
   // STANDARD PASSWORD LOGIN
-  
-  // STANDARD PASSWORD LOGIN
   async login(dto: LoginDto) {
     const email = dto.email.trim().toLowerCase();
 
@@ -246,6 +244,27 @@ export class AuthService {
     };
   }
 
+  // GET LOGGED-IN USER PROFILE
+  async getProfile(userId: any) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        emailVerifiedAt: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User account not found or inactive');
+    }
+
+    return user;
+  }
 
   // FORGOT PASSWORD - SEND OTP
   async forgotPassword(dto: ForgotPasswordDto) {

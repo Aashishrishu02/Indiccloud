@@ -32,3 +32,8 @@ export type EmailVerificationOtp = Prisma.EmailVerificationOtpModel
  * 
  */
 export type PasswordResetOtp = Prisma.PasswordResetOtpModel
+/**
+ * Model VPSInstance
+ * 
+ */
+export type VPSInstance = Prisma.VPSInstanceModel

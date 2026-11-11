@@ -399,7 +399,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   EmailVerificationOtp: 'EmailVerificationOtp',
-  PasswordResetOtp: 'PasswordResetOtp'
+  PasswordResetOtp: 'PasswordResetOtp',
+  VPSInstance: 'VPSInstance'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "emailVerificationOtp" | "passwordResetOtp"
+    modelProps: "user" | "emailVerificationOtp" | "passwordResetOtp" | "vPSInstance"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -641,6 +642,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    VPSInstance: {
+      payload: Prisma.$VPSInstancePayload<ExtArgs>
+      fields: Prisma.VPSInstanceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.VPSInstanceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.VPSInstanceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        findFirst: {
+          args: Prisma.VPSInstanceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.VPSInstanceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        findMany: {
+          args: Prisma.VPSInstanceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>[]
+        }
+        create: {
+          args: Prisma.VPSInstanceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        createMany: {
+          args: Prisma.VPSInstanceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.VPSInstanceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>[]
+        }
+        delete: {
+          args: Prisma.VPSInstanceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        update: {
+          args: Prisma.VPSInstanceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        deleteMany: {
+          args: Prisma.VPSInstanceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.VPSInstanceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.VPSInstanceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>[]
+        }
+        upsert: {
+          args: Prisma.VPSInstanceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VPSInstancePayload>
+        }
+        aggregate: {
+          args: Prisma.VPSInstanceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVPSInstance>
+        }
+        groupBy: {
+          args: Prisma.VPSInstanceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VPSInstanceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.VPSInstanceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VPSInstanceCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -717,6 +792,24 @@ export const PasswordResetOtpScalarFieldEnum = {
 } as const
 
 export type PasswordResetOtpScalarFieldEnum = (typeof PasswordResetOtpScalarFieldEnum)[keyof typeof PasswordResetOtpScalarFieldEnum]
+
+
+export const VPSInstanceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  providerVpsId: 'providerVpsId',
+  ipAddress: 'ipAddress',
+  hostname: 'hostname',
+  operatingSystem: 'operatingSystem',
+  ram: 'ram',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VPSInstanceScalarFieldEnum = (typeof VPSInstanceScalarFieldEnum)[keyof typeof VPSInstanceScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -809,6 +902,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -965,6 +1072,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   emailVerificationOtp?: Prisma.EmailVerificationOtpOmit
   passwordResetOtp?: Prisma.PasswordResetOtpOmit
+  vPSInstance?: Prisma.VPSInstanceOmit
 }
 
 /* Types for Logging */
