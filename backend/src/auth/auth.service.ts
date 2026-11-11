@@ -208,6 +208,8 @@ export class AuthService {
   }
 
   // STANDARD PASSWORD LOGIN
+  
+  // STANDARD PASSWORD LOGIN
   async login(dto: LoginDto) {
     const email = dto.email.trim().toLowerCase();
 
@@ -228,12 +230,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    if (!user.emailVerifiedAt) {
-      throw new UnauthorizedException(
-        'Please verify your email before login',
-      );
-    }
-
     if (!user.isActive) {
       throw new UnauthorizedException('Your account is inactive');
     }
@@ -249,6 +245,7 @@ export class AuthService {
       reseller: false,
     };
   }
+
 
   // FORGOT PASSWORD - SEND OTP
   async forgotPassword(dto: ForgotPasswordDto) {
