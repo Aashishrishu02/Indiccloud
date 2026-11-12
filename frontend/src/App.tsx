@@ -16,21 +16,26 @@ import {
 
 import api from "./api";
 import Dashboard from "./Dashboard";
+import Home from "./Home";
 
 type Screen = "login" | "register" | "verify";
 
 function App() {
-  const pathname = window.location.pathname.replace(/\/+$/, "");
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
 
   if (pathname === "/dashboard") {
     return <Dashboard />;
   }
 
-  return <AuthApp />;
+  if (pathname === "/login" || pathname === "/register") {
+    return <AuthApp />;
+  }
+
+  return <Home />;
 }
 
 function AuthApp() {
-  const [screen, setScreen] = useState<Screen>("login");
+  const [screen, setScreen] = useState<Screen>(window.location.pathname === "/register" ? "register" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -188,7 +193,7 @@ function AuthApp() {
       <div className="relative z-10 w-full max-w-[470px]">
         <div className="mb-7 flex items-center justify-between">
           <a href="/" className="text-xl font-extrabold tracking-tight">
-            Indic<span className="text-blue-400">Cloud</span>
+            24<span className="text-blue-400">/7</span>
           </a>
 
           <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-400">

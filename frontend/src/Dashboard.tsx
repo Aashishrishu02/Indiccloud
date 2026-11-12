@@ -94,7 +94,7 @@ export default function Dashboard() {
     } catch (error: any) {
       if (error.response?.status === 401) {
         sessionStorage.removeItem("indiccloud_token");
-        window.location.href = "/";
+        window.location.href = "/login";
         return;
       }
 
@@ -114,7 +114,7 @@ export default function Dashboard() {
       const token = sessionStorage.getItem("indiccloud_token");
 
       if (!token) {
-        window.location.href = "/";
+        window.location.href = "/login";
         return;
       }
 
@@ -130,7 +130,7 @@ export default function Dashboard() {
 
         if (error.response?.status === 401) {
           sessionStorage.removeItem("indiccloud_token");
-          window.location.href = "/";
+          window.location.href = "/login";
           return;
         }
 
@@ -209,7 +209,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("indiccloud_token");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   const handleMenuClick = (menu: string) => {

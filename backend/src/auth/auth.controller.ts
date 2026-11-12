@@ -8,6 +8,7 @@ import {
   Req,
 } from '@nestjs/common';
 
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 
@@ -33,24 +34,32 @@ export class AuthController {
 
   // REGISTER
   @Post('register/initiate-verification')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 900000 } })
   async initiateVerification(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   // VERIFY REGISTRATION OTP
   @Post('register/complete-registration')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async completeRegistration(@Body() dto: VerifyEmailDto) {
     return this.authService.verifyEmail(dto);
   }
 
   // RESEND REGISTRATION OTP
   @Post('register/resend-otp')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 900000 } })
   async resendOtp(@Body() dto: ResendOtpDto) {
     return this.authService.resendOtp(dto);
   }
 
   // LOGIN
   @Post('login')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
@@ -64,18 +73,24 @@ export class AuthController {
 
   // FORGOT PASSWORD
   @Post('password/forgot')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 900000 } })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
   // VERIFY PASSWORD RESET OTP
   @Post('password/verify-otp')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async verifyPasswordOtp(@Body() dto: VerifyPasswordOtpDto) {
     return this.authService.verifyPasswordOtp(dto);
   }
 
   // RESET PASSWORD
   @Post('password/reset')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }

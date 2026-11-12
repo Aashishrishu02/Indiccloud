@@ -46,7 +46,7 @@ export class AuthService {
     };
   }
 
-  // REGISTER USER AND SEND EMAIL OTP
+  // REGISTER USER WITHOUT EMAIL OTP
   async register(dto: RegisterDto) {
     const email = dto.email.trim().toLowerCase();
 
@@ -69,142 +69,30 @@ export class AuthService {
         name: `${dto.firstName.trim()} ${dto.lastName.trim()}`,
         email,
         passwordHash,
+        emailVerifiedAt: new Date(),
       },
     });
-
-    const otp = randomInt(100000, 1000000).toString();
-    const otpHash = await bcrypt.hash(otp, 12);
-
-    const otpRecord = await this.prisma.emailVerificationOtp.create({
-      data: {
-        userId: user.id,
-        otpHash,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-      },
-    });
-
-    try {
-      await this.emailService.sendOtpEmail(email, otp);
-    } catch (error) {
-      await this.prisma.emailVerificationOtp.delete({
-        where: { id: otpRecord.id },
-      });
-
-      throw error;
-    }
 
     return {
-      message: 'Verification OTP sent to your email. Please check.',
-    };
-  }
-
-  // VERIFY REGISTRATION OTP
-  async verifyEmail(dto: VerifyEmailDto) {
-    const email = dto.email.trim().toLowerCase();
-
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (user.emailVerifiedAt) {
-      throw new BadRequestException('Email is already verified');
-    }
-
-    const otpRecord = await this.prisma.emailVerificationOtp.findFirst({
-      where: {
-        userId: user.id,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!otpRecord) {
-      throw new BadRequestException('OTP expired or not found');
-    }
-
-    const isValidOtp = await bcrypt.compare(
-      dto.otp,
-      otpRecord.otpHash,
-    );
-
-    if (!isValidOtp) {
-      throw new BadRequestException('Invalid OTP');
-    }
-
-    await this.prisma.$transaction([
-      this.prisma.emailVerificationOtp.update({
-        where: { id: otpRecord.id },
-        data: { usedAt: new Date() },
-      }),
-
-      this.prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerifiedAt: new Date() },
-      }),
-    ]);
-
-    return {
+      message: 'Registration successful. You can now log in.',
       id: user.id,
       email: user.email,
       role: user.role,
-      verified: true,
     };
   }
 
-  // RESEND REGISTRATION OTP
-  async resendOtp(dto: ResendOtpDto) {
-    const email = dto.email.trim().toLowerCase();
+  // VERIFY EMAIL - DISABLED
+  async verifyEmail(_dto: VerifyEmailDto) {
+    throw new BadRequestException(
+      'Email OTP verification is currently disabled.',
+    );
+  }
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (user.emailVerifiedAt) {
-      throw new BadRequestException('Email is already verified');
-    }
-
-    await this.prisma.emailVerificationOtp.updateMany({
-      where: {
-        userId: user.id,
-        usedAt: null,
-      },
-      data: { usedAt: new Date() },
-    });
-
-    const otp = randomInt(100000, 1000000).toString();
-    const otpHash = await bcrypt.hash(otp, 12);
-
-    const otpRecord = await this.prisma.emailVerificationOtp.create({
-      data: {
-        userId: user.id,
-        otpHash,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-      },
-    });
-
-    try {
-      await this.emailService.sendOtpEmail(email, otp);
-    } catch (error) {
-      await this.prisma.emailVerificationOtp.delete({
-        where: { id: otpRecord.id },
-      });
-
-      throw error;
-    }
-
-    return {
-      message: 'A new OTP has been sent to your email.',
-      email,
-    };
+  // RESEND REGISTRATION OTP - DISABLED
+  async resendOtp(_dto: ResendOtpDto) {
+    throw new BadRequestException(
+      'Email OTP verification is currently disabled.',
+    );
   }
 
   // STANDARD PASSWORD LOGIN
@@ -260,7 +148,9 @@ export class AuthService {
     });
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('User account not found or inactive');
+      throw new UnauthorizedException(
+        'User account not found or inactive',
+      );
     }
 
     return user;
