@@ -511,7 +511,7 @@ function AuthApp() {
             />
 
             <p className="text-[11px] leading-5 text-slate-400">
-              Your account authentication is handled by the IndicCloud
+              Your account authentication is handled by 24/7
               backend. Never share your password or verification code.
             </p>
           </div>
@@ -524,7 +524,7 @@ function AuthApp() {
         </div>
 
         <p className="mt-4 text-center text-[10px] tracking-wider text-slate-600">
-          © {new Date().getFullYear()} INDICCLOUD
+          © {new Date().getFullYear()} 24/7
         </p>
       </div>
     </div>

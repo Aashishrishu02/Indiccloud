@@ -23,12 +23,12 @@ export class EmailService {
 
     // Production email delivery
     const { data, error } = await this.resend.emails.send({
-      from: 'IndicCloud <onboarding@resend.dev>',
+      from: '24/7 <onboarding@resend.dev>',
       to: [email],
-      subject: 'IndicCloud - Email Verification OTP',
+      subject: '24/7 - Email Verification OTP',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 24px;">
-          <h2>Welcome to IndicCloud!</h2>
+          <h2>Welcome to 24/7!</h2>
           <p>Your email verification OTP is:</p>
           <h1 style="letter-spacing: 8px;">${otp}</h1>
           <p>This OTP is valid for 5 minutes.</p>

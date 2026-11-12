@@ -34,7 +34,7 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`IndicCloud backend running on port ${port}`);
+  console.log(`24/7 backend running on port ${port}`);
 }
 
 await bootstrap();

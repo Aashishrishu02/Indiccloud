@@ -490,7 +490,7 @@ export default function Dashboard() {
                 {activeMenu}
               </h2>
               <p className="hidden text-xs text-slate-500 sm:block">
-                Manage your IndicCloud account
+                Manage your 24/7 account
               </p>
             </div>
           </div>
@@ -539,7 +539,7 @@ export default function Dashboard() {
                 <div>
                   <p className="mb-2 text-sm text-blue-400">
                     Welcome
-                    {profile?.name ? `, ${profile.name}` : " to IndicCloud"}
+                    {profile?.name ? `, ${profile.name}` : " to 24/7"}
                   </p>
 
                   <h1 className="text-2xl font-bold sm:text-3xl">
@@ -727,7 +727,7 @@ export default function Dashboard() {
 
                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                       You haven't created any VPS yet. Deploy your first demo
-                      virtual private server to get started with IndicCloud.
+                      virtual private server to get started with 24/7.
                     </p>
 
                     <button
@@ -908,7 +908,7 @@ export default function Dashboard() {
                     <div>
                       <h2 className="font-bold">Account Security</h2>
                       <p className="mt-1 text-xs text-slate-500">
-                        Keep your IndicCloud account secure.
+                        Keep your 24/7 account secure.
                       </p>
                     </div>
                   </div>
@@ -926,7 +926,7 @@ export default function Dashboard() {
               {/* Footer */}
               <footer className="mt-10 flex flex-col justify-between gap-3 border-t border-slate-800 pt-6 text-xs text-slate-500 sm:flex-row">
                 <p>
-                  © {new Date().getFullYear()} IndicCloud. All rights reserved.
+                  © {new Date().getFullYear()} 24/7. All rights reserved.
                 </p>
                 <p>Powering your cloud infrastructure.</p>
               </footer>
@@ -1010,7 +1010,7 @@ export default function Dashboard() {
                   <div>
                     <h1 className="text-xl font-bold">Deploy Demo VPS</h1>
                     <p className="text-xs text-slate-400">
-                      IndicCloud demonstration environment
+                      24/7 demonstration environment
                     </p>
                   </div>
                 </div>
@@ -1099,7 +1099,7 @@ export default function Dashboard() {
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                 This section is ready for the next development step. Its
-                functionality will be connected to the IndicCloud backend.
+                functionality will be connected to the 24/7 backend.
               </p>
 
               <button
