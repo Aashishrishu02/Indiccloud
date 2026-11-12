@@ -74,3 +74,15 @@ model VPSInstance {
   @@index([userId])
   @@index([status])
 }
+
+
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

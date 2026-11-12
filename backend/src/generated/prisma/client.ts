@@ -61,3 +61,8 @@ export type PasswordResetOtp = Prisma.PasswordResetOtpModel
  * 
  */
 export type VPSInstance = Prisma.VPSInstanceModel
+/**
+ * Model Admin
+ * 
+ */
+export type Admin = Prisma.AdminModel

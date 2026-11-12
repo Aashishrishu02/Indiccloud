@@ -54,7 +54,8 @@ export const ModelName = {
   User: 'User',
   EmailVerificationOtp: 'EmailVerificationOtp',
   PasswordResetOtp: 'PasswordResetOtp',
-  VPSInstance: 'VPSInstance'
+  VPSInstance: 'VPSInstance',
+  Admin: 'Admin'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -128,6 +129,19 @@ export const VPSInstanceScalarFieldEnum = {
 } as const
 
 export type VPSInstanceScalarFieldEnum = (typeof VPSInstanceScalarFieldEnum)[keyof typeof VPSInstanceScalarFieldEnum]
+
+
+export const AdminScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
 
 
 export const SortOrder = {
