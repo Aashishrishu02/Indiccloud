@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -13,6 +14,29 @@ enum UserRole {
   SUPPORT
 }
 
+enum ProductType {
+  VPS_HOSTING
+  LINUX_IP_VPS
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROVISIONING
+  ACTIVE
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
 model User {
   id              String    @id @default(uuid())
   name            String?
@@ -24,9 +48,10 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  emailOtps    EmailVerificationOtp[]
-  passwordOtps PasswordResetOtp[]
-  vpsInstances VPSInstance[]
+  emailOtps       EmailVerificationOtp[]
+  passwordOtps    PasswordResetOtp[]
+  vpsInstances    VPSInstance[]
+  orders          Order[]
 }
 
 model EmailVerificationOtp {
@@ -58,6 +83,7 @@ model PasswordResetOtp {
 model VPSInstance {
   id              String    @id @default(uuid())
   userId          String
+  orderId         String?   @unique
   provider        String    @default("SMARTVPS")
   providerVpsId   String?   @unique
   ipAddress       String    @unique
@@ -69,12 +95,12 @@ model VPSInstance {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([status])
 }
-
 
 model Admin {
   id           String   @id @default(uuid())
@@ -86,3 +112,68 @@ model Admin {
   updatedAt    DateTime @updatedAt
 }
 
+model VPSPlan {
+  id           String      @id @default(uuid())
+  name         String
+  productType  ProductType
+  description  String?
+  cpuCores     Int
+  ramGb        Int
+  storageGb    Int
+  bandwidthGb  Int?
+  price        Decimal     @db.Decimal(10, 2)
+  currency     String      @default("INR")
+  durationDays Int
+  supportedOS  String[]
+  isActive     Boolean     @default(true)
+  sortOrder    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  orders Order[]
+
+  @@index([productType])
+  @@index([isActive])
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique
+  userId          String
+  planId          String
+  planName        String
+  operatingSystem String
+  amount          Decimal     @db.Decimal(10, 2)
+  currency        String      @default("INR")
+  status          OrderStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan        VPSPlan     @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payment     Payment?
+  vpsInstance VPSInstance?
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String        @unique
+  provider          String        @default("RAZORPAY")
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+}

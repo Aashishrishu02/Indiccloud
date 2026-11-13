@@ -1,18 +1,22 @@
+import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../dist/generated/prisma/client.js";
+import bcrypt from "bcrypt";
 
-import 'dotenv/config';
-import bcrypt from 'bcrypt';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../dist/generated/prisma/client.js';
-const required = ['DATABASE_URL', 'ADMIN_NAME', 'ADMIN_EMAIL', 'ADMIN_PASSWORD'];
+const name = process.env.ADMIN_NAME?.trim();
+const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+const password = process.env.ADMIN_PASSWORD;
 
-for (const key of required) {
-  if (!process.env[key]) {
-    throw new Error(`${key} is missing from environment`);
-  }
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not configured.");
 }
 
-if (process.env.ADMIN_PASSWORD.length < 12) {
-  throw new Error('Admin password must be at least 12 characters');
+if (!name || !email || !password) {
+  throw new Error("Admin name, email and password are required.");
+}
+
+if (password.length < 12) {
+  throw new Error("Admin password must contain at least 12 characters.");
 }
 
 const adapter = new PrismaPg({
@@ -22,35 +26,36 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 try {
-  const email = process.env.ADMIN_EMAIL.trim().toLowerCase();
-
   const existing = await prisma.admin.findUnique({
     where: { email },
   });
 
   if (existing) {
-    throw new Error('An admin with this email already exists');
+    throw new Error("This admin email already exists. No changes made.");
   }
 
-  const passwordHash = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD,
-    12,
-  );
+  const passwordHash = await bcrypt.hash(password, 12);
 
   const admin = await prisma.admin.create({
     data: {
-      name: process.env.ADMIN_NAME.trim(),
+      name,
       email,
       passwordHash,
+      isActive: true,
     },
     select: {
       id: true,
       name: true,
       email: true,
+      isActive: true,
     },
   });
 
-  console.log('Admin created successfully:', admin);
+  console.log("\nAdmin account created successfully:");
+  console.log(admin);
+} catch (error) {
+  console.error("\nAdmin creation failed:", error.message);
+  process.exitCode = 1;
 } finally {
   await prisma.$disconnect();
 }

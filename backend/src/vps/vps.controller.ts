@@ -5,9 +5,11 @@ import {
   Post,
   Param,
   Req,
+  Body,
   UseGuards,
   NotFoundException,
   ServiceUnavailableException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { VpsService } from './vps.service.js';
@@ -30,7 +32,7 @@ export class VpsController {
     private readonly prisma: PrismaService,
   ) {}
 
-  // Get logged-in user's VPS list
+  // Get logged-in customer's VPS list
   @Get()
   async getMyVps(@Req() req: AuthenticatedRequest) {
     return this.prisma.vPSInstance.findMany({
@@ -39,16 +41,74 @@ export class VpsController {
     });
   }
 
-  // Create a demo VPS for the logged-in user
+  // Get available provider IP stock
+  @Get('ip-stock')
+  async getIpStock() {
+    return this.vpsService.getIpStock();
+  }
+
+  // Get OS templates for an owned VPS
+  @Get(':id/templates')
+  async getOsTemplates(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const vps = await this.findOwnedVps(id, req.user.sub);
+    return this.vpsService.getOsTemplate(vps.ipAddress);
+  }
+
+  // Purchase VPS using provider's available IP
+  @Post('purchase')
+  async purchaseVps(
+    @Body() body: { ip: string; ram: number },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const ip = body.ip?.trim();
+    const ram = Number(body.ram);
+
+    if (!ip || !Number.isInteger(ram) || ram <= 0) {
+      throw new BadRequestException('Valid IP and RAM are required');
+    }
+
+    const existing = await this.prisma.vPSInstance.findUnique({
+      where: { ipAddress: ip },
+    });
+
+    if (existing) {
+      throw new BadRequestException('This IP is already registered');
+    }
+
+    // Call actual provider before saving the VPS
+    const providerResult = await this.vpsService.buy(ip, ram);
+
+    const vps = await this.prisma.vPSInstance.create({
+      data: {
+        userId: req.user.sub,
+        provider: 'SMARTVPS',
+        ipAddress: ip,
+        hostname: `vps-${ip.replaceAll('.', '-')}`,
+        operatingSystem: 'Ubuntu',
+        ram,
+        status: 'PENDING',
+      },
+    });
+
+    return {
+      message: 'VPS purchase request submitted',
+      providerResult,
+      vps,
+    };
+  }
+
+  // Demo provisioning (DEMO mode only)
   @Post('demo/provision')
   async provisionDemoVps(@Req() req: AuthenticatedRequest) {
-    if (process.env.VPS_MODE !== 'DEMO') {
+    if ((process.env.VPS_MODE || 'DEMO').toUpperCase() !== 'DEMO') {
       throw new ServiceUnavailableException(
         'Demo provisioning is available only in DEMO mode',
       );
     }
 
-    // Find an unused reserved documentation IP
     let ipAddress: string | null = null;
 
     for (let lastOctet = 20; lastOctet <= 254; lastOctet++) {
@@ -73,10 +133,8 @@ export class VpsController {
     const ram = 4;
     const operatingSystem = 'Ubuntu 22.04';
 
-    // Register the VPS in the demo service
     await this.vpsService.buy(ipAddress, ram);
 
-    // Persist the VPS for this user
     const vps = await this.prisma.vPSInstance.create({
       data: {
         userId: req.user.sub,
@@ -106,9 +164,7 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const vps = await this.findOwnedVps(id, req.user.sub);
-    const result = await this.vpsService.getStatus(vps.ipAddress);
-
-    return result;
+    return this.vpsService.getStatus(vps.ipAddress);
   }
 
   // Start VPS
@@ -125,10 +181,7 @@ export class VpsController {
       data: { status: 'RUNNING' },
     });
 
-    return {
-      message: 'VPS started successfully',
-      result,
-    };
+    return { message: 'VPS start request submitted', result };
   }
 
   // Stop VPS
@@ -145,8 +198,45 @@ export class VpsController {
       data: { status: 'STOPPED' },
     });
 
+    return { message: 'VPS stop request submitted', result };
+  }
+
+  // Change operating system
+  @Post(':id/change-os')
+  async changeOs(
+    @Param('id') id: string,
+    @Body() body: { os: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!body.os?.trim()) {
+      throw new BadRequestException('Operating system is required');
+    }
+
+    const vps = await this.findOwnedVps(id, req.user.sub);
+    const result = await this.vpsService.changeOs(
+      vps.ipAddress,
+      body.os,
+    );
+
+    await this.prisma.vPSInstance.update({
+      where: { id: vps.id },
+      data: { operatingSystem: body.os },
+    });
+
+    return { message: 'OS change request submitted', result };
+  }
+
+  // Renew VPS
+  @Post(':id/renew')
+  async renewVps(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const vps = await this.findOwnedVps(id, req.user.sub);
+    const result = await this.vpsService.renew(vps.ipAddress);
+
     return {
-      message: 'VPS stopped successfully',
+      message: 'VPS renewal request submitted',
       result,
     };
   }

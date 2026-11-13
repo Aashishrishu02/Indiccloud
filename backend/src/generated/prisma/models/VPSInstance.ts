@@ -37,6 +37,7 @@ export type VPSInstanceSumAggregateOutputType = {
 export type VPSInstanceMinAggregateOutputType = {
   id: string | null
   userId: string | null
+  orderId: string | null
   provider: string | null
   providerVpsId: string | null
   ipAddress: string | null
@@ -52,6 +53,7 @@ export type VPSInstanceMinAggregateOutputType = {
 export type VPSInstanceMaxAggregateOutputType = {
   id: string | null
   userId: string | null
+  orderId: string | null
   provider: string | null
   providerVpsId: string | null
   ipAddress: string | null
@@ -67,6 +69,7 @@ export type VPSInstanceMaxAggregateOutputType = {
 export type VPSInstanceCountAggregateOutputType = {
   id: number
   userId: number
+  orderId: number
   provider: number
   providerVpsId: number
   ipAddress: number
@@ -92,6 +95,7 @@ export type VPSInstanceSumAggregateInputType = {
 export type VPSInstanceMinAggregateInputType = {
   id?: true
   userId?: true
+  orderId?: true
   provider?: true
   providerVpsId?: true
   ipAddress?: true
@@ -107,6 +111,7 @@ export type VPSInstanceMinAggregateInputType = {
 export type VPSInstanceMaxAggregateInputType = {
   id?: true
   userId?: true
+  orderId?: true
   provider?: true
   providerVpsId?: true
   ipAddress?: true
@@ -122,6 +127,7 @@ export type VPSInstanceMaxAggregateInputType = {
 export type VPSInstanceCountAggregateInputType = {
   id?: true
   userId?: true
+  orderId?: true
   provider?: true
   providerVpsId?: true
   ipAddress?: true
@@ -224,6 +230,7 @@ export type VPSInstanceGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type VPSInstanceGroupByOutputType = {
   id: string
   userId: string
+  orderId: string | null
   provider: string
   providerVpsId: string | null
   ipAddress: string
@@ -262,6 +269,7 @@ export type VPSInstanceWhereInput = {
   NOT?: Prisma.VPSInstanceWhereInput | Prisma.VPSInstanceWhereInput[]
   id?: Prisma.StringFilter<"VPSInstance"> | string
   userId?: Prisma.StringFilter<"VPSInstance"> | string
+  orderId?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   provider?: Prisma.StringFilter<"VPSInstance"> | string
   providerVpsId?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   ipAddress?: Prisma.StringFilter<"VPSInstance"> | string
@@ -273,11 +281,13 @@ export type VPSInstanceWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
 }
 
 export type VPSInstanceOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orderId?: Prisma.SortOrderInput | Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerVpsId?: Prisma.SortOrderInput | Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
@@ -289,10 +299,12 @@ export type VPSInstanceOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  order?: Prisma.OrderOrderByWithRelationInput
 }
 
 export type VPSInstanceWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  orderId?: string
   providerVpsId?: string
   ipAddress?: string
   AND?: Prisma.VPSInstanceWhereInput | Prisma.VPSInstanceWhereInput[]
@@ -308,11 +320,13 @@ export type VPSInstanceWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "providerVpsId" | "ipAddress">
+  order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
+}, "id" | "orderId" | "providerVpsId" | "ipAddress">
 
 export type VPSInstanceOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orderId?: Prisma.SortOrderInput | Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerVpsId?: Prisma.SortOrderInput | Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
@@ -336,6 +350,7 @@ export type VPSInstanceScalarWhereWithAggregatesInput = {
   NOT?: Prisma.VPSInstanceScalarWhereWithAggregatesInput | Prisma.VPSInstanceScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"VPSInstance"> | string
   userId?: Prisma.StringWithAggregatesFilter<"VPSInstance"> | string
+  orderId?: Prisma.StringNullableWithAggregatesFilter<"VPSInstance"> | string | null
   provider?: Prisma.StringWithAggregatesFilter<"VPSInstance"> | string
   providerVpsId?: Prisma.StringNullableWithAggregatesFilter<"VPSInstance"> | string | null
   ipAddress?: Prisma.StringWithAggregatesFilter<"VPSInstance"> | string
@@ -361,11 +376,13 @@ export type VPSInstanceCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
+  order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
 }
 
 export type VPSInstanceUncheckedCreateInput = {
   id?: string
   userId: string
+  orderId?: string | null
   provider?: string
   providerVpsId?: string | null
   ipAddress: string
@@ -391,11 +408,13 @@ export type VPSInstanceUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
+  order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
@@ -411,6 +430,7 @@ export type VPSInstanceUncheckedUpdateInput = {
 export type VPSInstanceCreateManyInput = {
   id?: string
   userId: string
+  orderId?: string | null
   provider?: string
   providerVpsId?: string | null
   ipAddress: string
@@ -440,6 +460,7 @@ export type VPSInstanceUpdateManyMutationInput = {
 export type VPSInstanceUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
@@ -465,6 +486,7 @@ export type VPSInstanceOrderByRelationAggregateInput = {
 export type VPSInstanceCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orderId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerVpsId?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
@@ -484,6 +506,7 @@ export type VPSInstanceAvgOrderByAggregateInput = {
 export type VPSInstanceMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orderId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerVpsId?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
@@ -499,6 +522,7 @@ export type VPSInstanceMaxOrderByAggregateInput = {
 export type VPSInstanceMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orderId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerVpsId?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
@@ -513,6 +537,11 @@ export type VPSInstanceMinOrderByAggregateInput = {
 
 export type VPSInstanceSumOrderByAggregateInput = {
   ram?: Prisma.SortOrder
+}
+
+export type VPSInstanceNullableScalarRelationFilter = {
+  is?: Prisma.VPSInstanceWhereInput | null
+  isNot?: Prisma.VPSInstanceWhereInput | null
 }
 
 export type VPSInstanceCreateNestedManyWithoutUserInput = {
@@ -565,6 +594,38 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type VPSInstanceCreateNestedOneWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutOrderInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+}
+
+export type VPSInstanceUncheckedCreateNestedOneWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutOrderInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+}
+
+export type VPSInstanceUpdateOneWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutOrderInput
+  upsert?: Prisma.VPSInstanceUpsertWithoutOrderInput
+  disconnect?: Prisma.VPSInstanceWhereInput | boolean
+  delete?: Prisma.VPSInstanceWhereInput | boolean
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutOrderInput, Prisma.VPSInstanceUpdateWithoutOrderInput>, Prisma.VPSInstanceUncheckedUpdateWithoutOrderInput>
+}
+
+export type VPSInstanceUncheckedUpdateOneWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutOrderInput
+  upsert?: Prisma.VPSInstanceUpsertWithoutOrderInput
+  disconnect?: Prisma.VPSInstanceWhereInput | boolean
+  delete?: Prisma.VPSInstanceWhereInput | boolean
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutOrderInput, Prisma.VPSInstanceUpdateWithoutOrderInput>, Prisma.VPSInstanceUncheckedUpdateWithoutOrderInput>
+}
+
 export type VPSInstanceCreateWithoutUserInput = {
   id?: string
   provider?: string
@@ -577,10 +638,12 @@ export type VPSInstanceCreateWithoutUserInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
 }
 
 export type VPSInstanceUncheckedCreateWithoutUserInput = {
   id?: string
+  orderId?: string | null
   provider?: string
   providerVpsId?: string | null
   ipAddress: string
@@ -625,6 +688,7 @@ export type VPSInstanceScalarWhereInput = {
   NOT?: Prisma.VPSInstanceScalarWhereInput | Prisma.VPSInstanceScalarWhereInput[]
   id?: Prisma.StringFilter<"VPSInstance"> | string
   userId?: Prisma.StringFilter<"VPSInstance"> | string
+  orderId?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   provider?: Prisma.StringFilter<"VPSInstance"> | string
   providerVpsId?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   ipAddress?: Prisma.StringFilter<"VPSInstance"> | string
@@ -637,8 +701,85 @@ export type VPSInstanceScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
 }
 
+export type VPSInstanceCreateWithoutOrderInput = {
+  id?: string
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: string
+  expiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
+}
+
+export type VPSInstanceUncheckedCreateWithoutOrderInput = {
+  id?: string
+  userId: string
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: string
+  expiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type VPSInstanceCreateOrConnectWithoutOrderInput = {
+  where: Prisma.VPSInstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+}
+
+export type VPSInstanceUpsertWithoutOrderInput = {
+  update: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutOrderInput, Prisma.VPSInstanceUncheckedUpdateWithoutOrderInput>
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutOrderInput, Prisma.VPSInstanceUncheckedCreateWithoutOrderInput>
+  where?: Prisma.VPSInstanceWhereInput
+}
+
+export type VPSInstanceUpdateToOneWithWhereWithoutOrderInput = {
+  where?: Prisma.VPSInstanceWhereInput
+  data: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutOrderInput, Prisma.VPSInstanceUncheckedUpdateWithoutOrderInput>
+}
+
+export type VPSInstanceUpdateWithoutOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
+}
+
+export type VPSInstanceUncheckedUpdateWithoutOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type VPSInstanceCreateManyUserInput = {
   id?: string
+  orderId?: string | null
   provider?: string
   providerVpsId?: string | null
   ipAddress: string
@@ -663,10 +804,12 @@ export type VPSInstanceUpdateWithoutUserInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
@@ -681,6 +824,7 @@ export type VPSInstanceUncheckedUpdateWithoutUserInput = {
 
 export type VPSInstanceUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
@@ -698,6 +842,7 @@ export type VPSInstanceUncheckedUpdateManyWithoutUserInput = {
 export type VPSInstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  orderId?: boolean
   provider?: boolean
   providerVpsId?: boolean
   ipAddress?: boolean
@@ -709,11 +854,13 @@ export type VPSInstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }, ExtArgs["result"]["vPSInstance"]>
 
 export type VPSInstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  orderId?: boolean
   provider?: boolean
   providerVpsId?: boolean
   ipAddress?: boolean
@@ -725,11 +872,13 @@ export type VPSInstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }, ExtArgs["result"]["vPSInstance"]>
 
 export type VPSInstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  orderId?: boolean
   provider?: boolean
   providerVpsId?: boolean
   ipAddress?: boolean
@@ -741,11 +890,13 @@ export type VPSInstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }, ExtArgs["result"]["vPSInstance"]>
 
 export type VPSInstanceSelectScalar = {
   id?: boolean
   userId?: boolean
+  orderId?: boolean
   provider?: boolean
   providerVpsId?: boolean
   ipAddress?: boolean
@@ -758,25 +909,30 @@ export type VPSInstanceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type VPSInstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "provider" | "providerVpsId" | "ipAddress" | "hostname" | "operatingSystem" | "ram" | "status" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["vPSInstance"]>
+export type VPSInstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "orderId" | "provider" | "providerVpsId" | "ipAddress" | "hostname" | "operatingSystem" | "ram" | "status" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["vPSInstance"]>
 export type VPSInstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }
 export type VPSInstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }
 export type VPSInstanceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
 }
 
 export type $VPSInstancePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "VPSInstance"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    order: Prisma.$OrderPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
+    orderId: string | null
     provider: string
     providerVpsId: string | null
     ipAddress: string
@@ -1182,6 +1338,7 @@ readonly fields: VPSInstanceFieldRefs;
 export interface Prisma__VPSInstanceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  order<T extends Prisma.VPSInstance$orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$orderArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1213,6 +1370,7 @@ export interface Prisma__VPSInstanceClient<T, Null = never, ExtArgs extends runt
 export interface VPSInstanceFieldRefs {
   readonly id: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly userId: Prisma.FieldRef<"VPSInstance", 'String'>
+  readonly orderId: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly provider: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly providerVpsId: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly ipAddress: Prisma.FieldRef<"VPSInstance", 'String'>
@@ -1621,6 +1779,25 @@ export type VPSInstanceDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many VPSInstances to delete.
    */
   limit?: number
+}
+
+/**
+ * VPSInstance.order
+ */
+export type VPSInstance$orderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
 }
 
 /**

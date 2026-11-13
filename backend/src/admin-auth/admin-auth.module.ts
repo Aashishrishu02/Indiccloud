@@ -1,7 +1,6 @@
-
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 
 import { AdminAuthController } from './admin-auth.controller.js';
 import { AdminAuthService } from './admin-auth.service.js';
@@ -9,7 +8,9 @@ import { AdminAuthGuard } from './admin-auth.guard.js';
 
 @Module({
   imports: [
+    ConfigModule,
     JwtModule.registerAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('ADMIN_JWT_SECRET');
@@ -29,5 +30,6 @@ import { AdminAuthGuard } from './admin-auth.guard.js';
   ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService, AdminAuthGuard],
+  exports: [AdminAuthGuard, JwtModule],
 })
 export class AdminAuthModule {}

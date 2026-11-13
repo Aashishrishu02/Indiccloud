@@ -66,3 +66,18 @@ export type VPSInstance = Prisma.VPSInstanceModel
  * 
  */
 export type Admin = Prisma.AdminModel
+/**
+ * Model VPSPlan
+ * 
+ */
+export type VPSPlan = Prisma.VPSPlanModel
+/**
+ * Model Order
+ * 
+ */
+export type Order = Prisma.OrderModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel

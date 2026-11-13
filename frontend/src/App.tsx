@@ -17,11 +17,16 @@ import {
 import api from "./api";
 import Dashboard from "./Dashboard";
 import Home from "./Home";
+import AdminPanel from "./AdminPanel";
 
 type Screen = "login" | "register" | "verify";
 
 function App() {
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+
+  if (pathname === "/admin" || pathname === "/admin/login") {
+    return <AdminPanel />;
+  }
 
   if (pathname === "/dashboard") {
     return <Dashboard />;

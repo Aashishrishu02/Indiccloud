@@ -217,6 +217,7 @@ export type UserWhereInput = {
   emailOtps?: Prisma.EmailVerificationOtpListRelationFilter
   passwordOtps?: Prisma.PasswordResetOtpListRelationFilter
   vpsInstances?: Prisma.VPSInstanceListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -232,6 +233,7 @@ export type UserOrderByWithRelationInput = {
   emailOtps?: Prisma.EmailVerificationOtpOrderByRelationAggregateInput
   passwordOtps?: Prisma.PasswordResetOtpOrderByRelationAggregateInput
   vpsInstances?: Prisma.VPSInstanceOrderByRelationAggregateInput
+  orders?: Prisma.OrderOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   emailOtps?: Prisma.EmailVerificationOtpListRelationFilter
   passwordOtps?: Prisma.PasswordResetOtpListRelationFilter
   vpsInstances?: Prisma.VPSInstanceListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -295,6 +298,7 @@ export type UserCreateInput = {
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -310,6 +314,7 @@ export type UserUncheckedCreateInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -325,6 +330,7 @@ export type UserUpdateInput = {
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -340,6 +346,7 @@ export type UserUncheckedUpdateInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -485,6 +492,20 @@ export type UserUpdateOneRequiredWithoutVpsInstancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVpsInstancesInput, Prisma.UserUpdateWithoutVpsInstancesInput>, Prisma.UserUncheckedUpdateWithoutVpsInstancesInput>
 }
 
+export type UserCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrdersInput
+  upsert?: Prisma.UserUpsertWithoutOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrdersInput, Prisma.UserUpdateWithoutOrdersInput>, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+}
+
 export type UserCreateWithoutEmailOtpsInput = {
   id?: string
   name?: string | null
@@ -497,6 +518,7 @@ export type UserCreateWithoutEmailOtpsInput = {
   updatedAt?: Date | string
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEmailOtpsInput = {
@@ -511,6 +533,7 @@ export type UserUncheckedCreateWithoutEmailOtpsInput = {
   updatedAt?: Date | string
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEmailOtpsInput = {
@@ -541,6 +564,7 @@ export type UserUpdateWithoutEmailOtpsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmailOtpsInput = {
@@ -555,6 +579,7 @@ export type UserUncheckedUpdateWithoutEmailOtpsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPasswordOtpsInput = {
@@ -569,6 +594,7 @@ export type UserCreateWithoutPasswordOtpsInput = {
   updatedAt?: Date | string
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordOtpsInput = {
@@ -583,6 +609,7 @@ export type UserUncheckedCreateWithoutPasswordOtpsInput = {
   updatedAt?: Date | string
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordOtpsInput = {
@@ -613,6 +640,7 @@ export type UserUpdateWithoutPasswordOtpsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
@@ -627,6 +655,7 @@ export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutVpsInstancesInput = {
@@ -641,6 +670,7 @@ export type UserCreateWithoutVpsInstancesInput = {
   updatedAt?: Date | string
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVpsInstancesInput = {
@@ -655,6 +685,7 @@ export type UserUncheckedCreateWithoutVpsInstancesInput = {
   updatedAt?: Date | string
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVpsInstancesInput = {
@@ -685,6 +716,7 @@ export type UserUpdateWithoutVpsInstancesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVpsInstancesInput = {
@@ -699,6 +731,83 @@ export type UserUncheckedUpdateWithoutVpsInstancesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutOrdersInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutOrdersInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+}
+
+export type UserUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrdersInput, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrdersInput, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+}
+
+export type UserUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -710,12 +819,14 @@ export type UserCountOutputType = {
   emailOtps: number
   passwordOtps: number
   vpsInstances: number
+  orders: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   emailOtps?: boolean | UserCountOutputTypeCountEmailOtpsArgs
   passwordOtps?: boolean | UserCountOutputTypeCountPasswordOtpsArgs
   vpsInstances?: boolean | UserCountOutputTypeCountVpsInstancesArgs
+  orders?: boolean | UserCountOutputTypeCountOrdersArgs
 }
 
 /**
@@ -749,6 +860,13 @@ export type UserCountOutputTypeCountVpsInstancesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.VPSInstanceWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -763,6 +881,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   emailOtps?: boolean | Prisma.User$emailOtpsArgs<ExtArgs>
   passwordOtps?: boolean | Prisma.User$passwordOtpsArgs<ExtArgs>
   vpsInstances?: boolean | Prisma.User$vpsInstancesArgs<ExtArgs>
+  orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -807,6 +926,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   emailOtps?: boolean | Prisma.User$emailOtpsArgs<ExtArgs>
   passwordOtps?: boolean | Prisma.User$passwordOtpsArgs<ExtArgs>
   vpsInstances?: boolean | Prisma.User$vpsInstancesArgs<ExtArgs>
+  orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -818,6 +938,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     emailOtps: Prisma.$EmailVerificationOtpPayload<ExtArgs>[]
     passwordOtps: Prisma.$PasswordResetOtpPayload<ExtArgs>[]
     vpsInstances: Prisma.$VPSInstancePayload<ExtArgs>[]
+    orders: Prisma.$OrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1226,6 +1347,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   emailOtps<T extends Prisma.User$emailOtpsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$emailOtpsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmailVerificationOtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordOtps<T extends Prisma.User$passwordOtpsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordOtpsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetOtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   vpsInstances<T extends Prisma.User$vpsInstancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$vpsInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSInstancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1726,6 +1848,30 @@ export type User$vpsInstancesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.VPSInstanceScalarFieldEnum | Prisma.VPSInstanceScalarFieldEnum[]
+}
+
+/**
+ * User.orders
+ */
+export type User$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
 }
 
 /**

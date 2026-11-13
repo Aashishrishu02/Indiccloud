@@ -55,7 +55,10 @@ export const ModelName = {
   EmailVerificationOtp: 'EmailVerificationOtp',
   PasswordResetOtp: 'PasswordResetOtp',
   VPSInstance: 'VPSInstance',
-  Admin: 'Admin'
+  Admin: 'Admin',
+  VPSPlan: 'VPSPlan',
+  Order: 'Order',
+  Payment: 'Payment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -116,6 +119,7 @@ export type PasswordResetOtpScalarFieldEnum = (typeof PasswordResetOtpScalarFiel
 export const VPSInstanceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  orderId: 'orderId',
   provider: 'provider',
   providerVpsId: 'providerVpsId',
   ipAddress: 'ipAddress',
@@ -142,6 +146,62 @@ export const AdminScalarFieldEnum = {
 } as const
 
 export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
+
+
+export const VPSPlanScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  productType: 'productType',
+  description: 'description',
+  cpuCores: 'cpuCores',
+  ramGb: 'ramGb',
+  storageGb: 'storageGb',
+  bandwidthGb: 'bandwidthGb',
+  price: 'price',
+  currency: 'currency',
+  durationDays: 'durationDays',
+  supportedOS: 'supportedOS',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VPSPlanScalarFieldEnum = (typeof VPSPlanScalarFieldEnum)[keyof typeof VPSPlanScalarFieldEnum]
+
+
+export const OrderScalarFieldEnum = {
+  id: 'id',
+  orderNumber: 'orderNumber',
+  userId: 'userId',
+  planId: 'planId',
+  planName: 'planName',
+  operatingSystem: 'operatingSystem',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
+
+
+export const PaymentScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  provider: 'provider',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
 export const SortOrder = {

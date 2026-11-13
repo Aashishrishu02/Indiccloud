@@ -1,1118 +1,197 @@
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  LayoutDashboard,
-  Server,
-  ShoppingCart,
-  Wallet,
-  Receipt,
-  Headphones,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Plus,
-  Activity,
-  ShieldCheck,
-  ArrowUpRight,
-  Cpu,
-  HardDrive,
-  MemoryStick,
-  Globe,
-  ChevronRight,
-  Bell,
-  User,
-  CreditCard,
-  Zap,
-  Power,
-  PowerOff,
-  RefreshCw,
+  ArrowRight, ArrowUpRight, Cpu, CreditCard, HardDrive, Headphones,
+  LockKeyhole, Menu, Monitor, RefreshCw, Server, ShieldCheck, Wallet, X, Zap,
 } from "lucide-react";
-
 import api from "./api";
 import logo from "./assets/247-logo.png";
 
 type UserProfile = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  emailVerifiedAt: string | null;
-  isActive: boolean;
-  createdAt: string;
+  id: string; name: string; email: string; role: string;
+  emailVerifiedAt: string | null; isActive: boolean; createdAt: string;
 };
-
 type VPSInstance = {
-  id: string;
-  userId: string;
-  provider: string;
-  ipAddress: string;
-  hostname: string | null;
-  operatingSystem: string | null;
-  ram: number | null;
-  status: string;
-  expiresAt: string | null;
-  createdAt: string;
+  id: string; userId: string; provider: string; ipAddress: string;
+  hostname: string | null; operatingSystem: string | null; ram: number | null;
+  status: string; expiresAt: string | null; createdAt: string;
 };
+type VPSPlan = {
+  id: string; name: string; productType: "VPS_HOSTING" | "LINUX_IP_VPS";
+  description?: string | null; cpuCores?: number | null; ramGb?: number | null;
+  storageGb?: number | null; bandwidthGb?: number | null; price: number | string;
+  currency?: string; durationDays?: number; supportedOS?: string[];
+  isActive?: boolean; sortOrder?: number;
+};
+type Page = "Home" | "Windows VPS" | "Linux VPS" | "My VPS" | "Wallet" | "Orders" | "Support";
 
-const menuItems = [
-  { name: "Overview", icon: LayoutDashboard },
-  { name: "My VPS", icon: Server },
-  { name: "Buy VPS", icon: ShoppingCart },
-  { name: "Wallet", icon: Wallet },
-  { name: "Orders & Billing", icon: Receipt },
-  { name: "Support", icon: Headphones },
-  { name: "Settings", icon: Settings },
+const navItems: { label: Page; short: string }[] = [
+  { label: "Home", short: "Home" },
+  { label: "Windows VPS", short: "Windows VPS" },
+  { label: "Linux VPS", short: "Linux VPS" },
+  { label: "My VPS", short: "My Servers" },
+  { label: "Wallet", short: "Wallet" },
+  { label: "Orders", short: "Orders" },
+  { label: "Support", short: "Support" },
 ];
+const money = (value: number | string, currency = "INR") => {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "Price on request";
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+};
 
 export default function Dashboard() {
-  const [activeMenu, setActiveMenu] = useState("Overview");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const [page, setPage] = useState<Page>("Home");
+  const [mobileMenu, setMobileMenu] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileError, setProfileError] = useState("");
-
   const [vpsList, setVpsList] = useState<VPSInstance[]>([]);
-  const [vpsLoading, setVpsLoading] = useState(true);
-  const [vpsError, setVpsError] = useState("");
-  const [vpsMessage, setVpsMessage] = useState("");
+  const [plans, setPlans] = useState<VPSPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [plansLoading, setPlansLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [plansError, setPlansError] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<VPSPlan | null>(null);
+  const [selectedOS, setSelectedOS] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"WALLET" | "RAZORPAY">("RAZORPAY");
 
-  const [vpsActionLoading, setVpsActionLoading] = useState<string | null>(
-    null
-  );
-  const [provisionLoading, setProvisionLoading] = useState(false);
-
-  // Fetch logged-in user's VPS list
+  const fetchProfile = useCallback(async () => {
+    try {
+      const token = sessionStorage.getItem("indiccloud_token");
+      if (!token) { window.location.href = "/login"; return; }
+      const response = await api.get("/profile");
+      setProfile(response.data);
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        sessionStorage.removeItem("indiccloud_token"); window.location.href = "/login"; return;
+      }
+    }
+  }, []);
   const fetchVps = useCallback(async () => {
     try {
-      setVpsLoading(true);
-      setVpsError("");
-
+      setLoading(true); setError("");
       const response = await api.get("/vps");
-
       setVpsList(Array.isArray(response.data) ? response.data : []);
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        sessionStorage.removeItem("indiccloud_token");
-        window.location.href = "/login";
-        return;
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        sessionStorage.removeItem("indiccloud_token"); window.location.href = "/login"; return;
       }
-
-      setVpsError(
-        error.response?.data?.message || "Unable to load VPS instances."
-      );
-    } finally {
-      setVpsLoading(false);
-    }
+      setError(err.response?.data?.message || "Unable to load your servers.");
+    } finally { setLoading(false); }
   }, []);
-
-  // Fetch user profile
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchProfile = async () => {
-      const token = sessionStorage.getItem("indiccloud_token");
-
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
-
-      try {
-        const response = await api.get("/profile");
-
-        if (!cancelled) {
-          setProfile(response.data);
-          setProfileError("");
-        }
-      } catch (error: any) {
-        if (cancelled) return;
-
-        if (error.response?.status === 401) {
-          sessionStorage.removeItem("indiccloud_token");
-          window.location.href = "/login";
-          return;
-        }
-
-        setProfileError(
-          error.response?.data?.message ||
-            "Unable to load account information."
-        );
-      } finally {
-        if (!cancelled) {
-          setProfileLoading(false);
-        }
-      }
-    };
-
-    fetchProfile();
-
-    return () => {
-      cancelled = true;
-    };
+  const fetchPlans = useCallback(async () => {
+    try {
+      setPlansLoading(true); setPlansError("");
+      // Customer catalogue endpoint; the backend must expose active plans here.
+      const response = await api.get("/plans");
+      const rows = Array.isArray(response.data) ? response.data : response.data?.plans;
+      setPlans(Array.isArray(rows) ? rows.filter((plan: VPSPlan) => plan.isActive !== false) : []);
+    } catch (err: any) {
+      setPlans([]);
+      setPlansError(err.response?.data?.message || "Plans are not available yet. Please check back shortly.");
+    } finally { setPlansLoading(false); }
   }, []);
+  useEffect(() => { void fetchProfile(); void fetchVps(); void fetchPlans(); }, [fetchProfile, fetchVps, fetchPlans]);
 
-  // Fetch VPS list when dashboard loads
-  useEffect(() => {
-    fetchVps();
-  }, [fetchVps]);
-
-  // Create demo VPS
-  const provisionDemoVps = async () => {
+  const handleVpsAction = async (id: string, action: "start" | "stop") => {
     try {
-      setProvisionLoading(true);
-      setVpsError("");
-      setVpsMessage("");
-
-      const response = await api.post("/vps/demo/provision");
-
-      setVpsMessage(
-        response.data.message || "Demo VPS created successfully."
-      );
-
-      await fetchVps();
-      setActiveMenu("My VPS");
-    } catch (error: any) {
-      setVpsError(
-        error.response?.data?.message || "Unable to provision demo VPS."
-      );
-    } finally {
-      setProvisionLoading(false);
-    }
-  };
-
-  // Start or Stop VPS
-  const handleVpsAction = async (
-    id: string,
-    action: "start" | "stop"
-  ) => {
-    try {
-      setVpsActionLoading(id);
-      setVpsError("");
-      setVpsMessage("");
-
+      setActionLoading(id); setError(""); setNotice("");
       const response = await api.post(`/vps/${id}/${action}`);
-
-      setVpsMessage(
-        response.data.message || `VPS ${action} request successful.`
-      );
-
+      setNotice(response.data?.message || `Server ${action} request completed.`);
       await fetchVps();
-    } catch (error: any) {
-      setVpsError(
-        error.response?.data?.message || `Unable to ${action} VPS.`
-      );
-    } finally {
-      setVpsActionLoading(null);
-    }
+    } catch (err: any) { setError(err.response?.data?.message || `Unable to ${action} this server.`); }
+    finally { setActionLoading(null); }
   };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("indiccloud_token");
-    window.location.href = "/login";
+  const logout = () => { sessionStorage.removeItem("indiccloud_token"); window.location.href = "/login"; };
+  const go = (next: Page) => { setPage(next); setMobileMenu(false); setNotice(""); setError(""); };
+  const openCheckout = (plan: VPSPlan) => {
+    setSelectedPlan(plan); setSelectedOS(plan.supportedOS?.[0] || "Ubuntu 22.04"); setCoupon("");
   };
+  const activeCount = vpsList.filter((v) => v.status === "RUNNING").length;
+  const visiblePlans = useMemo(() => plans.filter((plan) => {
+    if (page === "Windows VPS") return plan.supportedOS?.some((os) => os.toLowerCase().includes("windows"));
+    if (page === "Linux VPS") return plan.productType === "LINUX_IP_VPS" || plan.supportedOS?.some((os) => !os.toLowerCase().includes("windows"));
+    return true;
+  }), [plans, page]);
 
-  const handleMenuClick = (menu: string) => {
-    setActiveMenu(menu);
-    setSidebarOpen(false);
-    setVpsMessage("");
-    setVpsError("");
-
-    if (menu === "My VPS" || menu === "Overview") {
-      fetchVps();
-    }
+  const PlanCard = ({ plan, index }: { plan: VPSPlan; index: number }) => {
+    const availableOS = plan.supportedOS || [];
+    return (
+      <article className={`group relative overflow-hidden rounded-2xl border bg-[#0b1531]/90 p-5 shadow-[0_16px_50px_rgba(0,0,0,.22)] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/70 ${index === 1 ? "border-cyan-400/60" : "border-blue-900/70"}`}>
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-600" />
+        {index === 1 && <span className="absolute right-4 top-4 rounded-full bg-cyan-300/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-200">Popular</span>}
+        <div className="flex items-start justify-between gap-3 pr-16">
+          <div className="flex items-center gap-2 text-cyan-100"><Monitor size={18}/><span className="text-xs font-semibold uppercase tracking-wider">{plan.productType === "LINUX_IP_VPS" ? "Linux IP VPS" : "Windows / VPS"}</span></div>
+          <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Available</span>
+        </div>
+        <h3 className="mt-4 min-h-12 text-lg font-extrabold leading-snug text-white">{plan.name}</h3>
+        {plan.description && <p className="mt-1 line-clamp-2 min-h-8 text-xs leading-5 text-slate-400">{plan.description}</p>}
+        <div className="mt-5 space-y-3 border-y border-blue-900/60 py-4 text-sm text-slate-200">
+          <div className="flex items-center gap-3"><Cpu size={16} className="text-cyan-300"/><span>{plan.cpuCores ?? "—"} vCPU Cores</span></div>
+          <div className="flex items-center gap-3"><Zap size={16} className="text-cyan-300"/><span>{plan.ramGb ?? "—"} GB RAM</span></div>
+          <div className="flex items-center gap-3"><HardDrive size={16} className="text-cyan-300"/><span>{plan.storageGb ?? "—"} GB SSD Storage</span></div>
+          <div className="flex items-center gap-3"><ArrowUpRight size={16} className="text-cyan-300"/><span>{plan.bandwidthGb ?? "—"} GB Bandwidth</span></div>
+          <div className="flex items-center gap-3"><ShieldCheck size={16} className="text-cyan-300"/><span>Full control panel & support</span></div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">{availableOS.slice(0, 3).map((os) => <span key={os} className="rounded-md bg-blue-950/80 px-2 py-1 text-[10px] text-blue-200">{os}</span>)}</div>
+        <div className="mt-5 flex items-end justify-between gap-3">
+          <div><p className="text-[10px] uppercase tracking-wider text-slate-500">Starting from</p><p className="mt-1 text-2xl font-black text-white">{money(plan.price, plan.currency || "INR")}<span className="ml-1 text-xs font-medium text-slate-400">/ {plan.durationDays === 30 ? "mo" : `${plan.durationDays || 30} days`}</span></p></div>
+          <button onClick={() => openCheckout(plan)} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-3 text-xs font-extrabold text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110">Buy Now <ArrowRight size={15}/></button>
+        </div>
+      </article>
+    );
   };
-
-  const initials = profile?.name
-    ? profile.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "24";
-
-  const activeVpsCount = vpsList.filter(
-    (vps) => vps.status === "RUNNING"
-  ).length;
-
-  const stats = [
-    {
-      title: "Total VPS",
-      value: String(vpsList.length),
-      description: "All your VPS instances",
-      icon: Server,
-    },
-    {
-      title: "Wallet Balance",
-      value: "₹0.00",
-      description: "Available account balance",
-      icon: Wallet,
-    },
-    {
-      title: "Active Services",
-      value: String(activeVpsCount),
-      description: "Currently running services",
-      icon: Activity,
-    },
-    {
-      title: "Pending Orders",
-      value: "0",
-      description: "Orders awaiting completion",
-      icon: ShoppingCart,
-    },
-  ];
-
-  const renderVpsCard = (vps: VPSInstance) => (
-    <div
-      key={vps.id}
-      className="rounded-2xl border border-slate-800 bg-[#0d1627] p-5 transition hover:border-blue-500/40 sm:p-6"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-            <Server size={22} />
-          </div>
-
-          <div className="min-w-0">
-            <h3 className="truncate font-bold">
-              {vps.hostname || "VPS Server"}
-            </h3>
-            <p className="text-xs text-slate-500">{vps.provider}</p>
-          </div>
-        </div>
-
-        <span
-          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-            vps.status === "RUNNING"
-              ? "bg-green-500/10 text-green-400"
-              : vps.status === "STOPPED"
-                ? "bg-slate-700 text-slate-300"
-                : "bg-yellow-500/10 text-yellow-400"
-          }`}
-        >
-          {vps.status}
-        </span>
-      </div>
-
-      <div className="mt-5">
-        <p className="text-xs text-slate-500">IP Address</p>
-        <p className="mt-1 text-xl font-bold text-blue-400">
-          {vps.ipAddress}
-        </p>
-      </div>
-
-      <div className="mt-5 grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-slate-500">Operating System</p>
-          <p className="mt-1 text-sm font-medium">
-            {vps.operatingSystem || "N/A"}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs text-slate-500">RAM</p>
-          <p className="mt-1 text-sm font-medium">
-            {vps.ram ?? "N/A"} GB
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs text-slate-500">Expiry Date</p>
-          <p className="mt-1 text-sm font-medium">
-            {vps.expiresAt
-              ? new Date(vps.expiresAt).toLocaleDateString()
-              : "N/A"}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs text-slate-500">Server Type</p>
-          <p className="mt-1 text-sm font-medium">Demo VPS</p>
-        </div>
-      </div>
-
-      <div className="mt-6 border-t border-slate-800 pt-5">
-        {vps.status === "RUNNING" ? (
-          <button
-            onClick={() => handleVpsAction(vps.id, "stop")}
-            disabled={vpsActionLoading === vps.id}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {vpsActionLoading === vps.id ? (
-              <RefreshCw size={17} className="animate-spin" />
-            ) : (
-              <PowerOff size={17} />
-            )}
-            {vpsActionLoading === vps.id ? "Processing..." : "Stop VPS"}
-          </button>
-        ) : (
-          <button
-            onClick={() => handleVpsAction(vps.id, "start")}
-            disabled={vpsActionLoading === vps.id}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {vpsActionLoading === vps.id ? (
-              <RefreshCw size={17} className="animate-spin" />
-            ) : (
-              <Power size={17} />
-            )}
-            {vpsActionLoading === vps.id ? "Processing..." : "Start VPS"}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 
   return (
-    <div className="min-h-screen bg-[#080e1b] text-white">
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-800 bg-[#0b1220] transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* 24/7 Brand Logo */}
-        <div className="flex h-20 items-center justify-between border-b border-slate-800 px-5">
-          <div className="flex items-center gap-3">
-            <img
-              src={logo}
-              alt="24/7 Hours Service"
-              className="h-12 w-12 shrink-0 rounded-xl object-contain"
-            />
-
-            <div>
-              <h1 className="text-xl font-bold tracking-wide">24/7</h1>
-              <p className="text-[10px] tracking-[2px] text-slate-500">
-                VPS HOSTING
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-slate-400 hover:text-white lg:hidden"
-            aria-label="Close sidebar"
-          >
-            <X size={21} />
+    <div className="min-h-screen overflow-x-hidden bg-[#050b20] text-white selection:bg-cyan-300 selection:text-[#06132d]">
+      <div className="pointer-events-none fixed inset-0 -z-0 bg-[radial-gradient(ellipse_at_50%_-15%,rgba(21,88,220,.28),transparent_48%),radial-gradient(ellipse_at_100%_60%,rgba(8,74,155,.12),transparent_35%)]" />
+      <header className="sticky top-0 z-40 border-b border-blue-900/50 bg-[#050b20]/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
+          <button onClick={() => go("Home")} className="flex items-center gap-3 text-left">
+            <img src={logo} alt="24/7" className="h-10 w-10 rounded-xl object-contain"/>
+            <span><span className="block text-lg font-black tracking-wide">24/7 <span className="text-cyan-300">HR SERVICE</span></span><span className="block text-[9px] tracking-[.28em] text-slate-500">VPS HOSTING</span></span>
           </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          <p className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[2px] text-slate-500">
-            Main Menu
-          </p>
-
-          <nav className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeMenu === item.name;
-
-              return (
-                <button
-                  key={item.name}
-                  onClick={() => handleMenuClick(item.name)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                  }`}
-                >
-                  <Icon size={19} />
-                  <span>{item.name}</span>
-
-                  {isActive && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Support Card */}
-          <div className="mt-10 rounded-2xl border border-slate-700 bg-gradient-to-br from-blue-950 to-[#101b30] p-4">
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400">
-              <Headphones size={19} />
-            </div>
-
-            <h3 className="text-sm font-semibold">Need Help?</h3>
-
-            <p className="mt-2 text-xs leading-5 text-slate-400">
-              Our support team is here to help you with your VPS.
-            </p>
-
-            <button
-              onClick={() => handleMenuClick("Support")}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold hover:bg-blue-500"
-            >
-              Contact Support
-              <ArrowUpRight size={14} />
-            </button>
+          <nav className="hidden items-center gap-1 lg:flex">{navItems.map((item) => <button key={item.label} onClick={() => go(item.label)} className={`rounded-full px-3 py-2 text-xs font-semibold transition ${page === item.label ? "bg-blue-500/15 text-cyan-200" : "text-slate-300 hover:bg-white/5 hover:text-white"}`}>{item.short}</button>)}</nav>
+          <div className="hidden items-center gap-3 sm:flex">
+            <div className="text-right"><p className="text-xs font-bold">{profile?.name || "My Account"}</p><p className="max-w-40 truncate text-[10px] text-slate-500">{profile?.email || ""}</p></div>
+            <button onClick={logout} className="rounded-full border border-blue-800/80 px-4 py-2 text-xs font-bold text-slate-200 transition hover:border-cyan-300 hover:text-cyan-200">Logout</button>
           </div>
+          <button onClick={() => setMobileMenu((v) => !v)} className="rounded-lg border border-blue-900 p-2 lg:hidden" aria-label="Toggle navigation">{mobileMenu ? <X size={20}/> : <Menu size={20}/>}</button>
         </div>
+        {mobileMenu && <nav className="grid grid-cols-2 gap-2 border-t border-blue-900/50 px-4 py-3 sm:grid-cols-3 lg:hidden">{navItems.map((item) => <button key={item.label} onClick={() => go(item.label)} className={`rounded-lg px-3 py-3 text-left text-sm ${page === item.label ? "bg-blue-600 text-white" : "bg-white/5 text-slate-300"}`}>{item.short}</button>)}<button onClick={logout} className="rounded-lg bg-red-500/10 px-3 py-3 text-left text-sm text-red-300">Logout</button></nav>}
+      </header>
 
-        {/* Sidebar Bottom */}
-        <div className="border-t border-slate-800 p-4">
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 transition hover:bg-red-500/10"
-          >
-            <LogOut size={19} />
-            Logout
-          </button>
-        </div>
-      </aside>
+      <main className="relative z-10 mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10">
+        {notice && <div className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
+        {error && <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
 
-      {/* Main Content */}
-      <main className="min-h-screen lg:ml-64">
-        {/* Header */}
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-800 bg-[#080e1b]/95 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-lg border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 lg:hidden"
-              aria-label="Open sidebar"
-            >
-              <Menu size={20} />
-            </button>
-
-            <div>
-              <h2 className="text-lg font-bold sm:text-xl">
-                {activeMenu}
-              </h2>
-              <p className="hidden text-xs text-slate-500 sm:block">
-                Manage your 24/7 account
-              </p>
+        {(page === "Home" || page === "Windows VPS" || page === "Linux VPS") && <>
+          {page === "Home" && <section className="relative mt-7 overflow-hidden rounded-[28px] border border-blue-700/50 bg-[linear-gradient(112deg,#07184a_0%,#092d82_48%,#071c50_100%)] px-6 py-14 text-center shadow-[0_25px_90px_rgba(0,48,160,.24)] sm:mt-9 sm:px-12 sm:py-20">
+            <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl"/><div className="pointer-events-none absolute -right-12 bottom-0 h-72 w-72 rounded-full bg-cyan-300/15 blur-3xl"/>
+            <div className="relative mx-auto max-w-3xl"><span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-cyan-200/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] text-cyan-100"><Zap size={13}/> High performance cloud servers</span>
+              <h1 className="mt-6 text-4xl font-black leading-[1.08] tracking-tight sm:text-6xl">Your Windows VPS<br/><span className="bg-gradient-to-r from-cyan-200 to-sky-400 bg-clip-text text-transparent">Starts Here.</span></h1>
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-blue-100/80 sm:text-base">High performance VPS hosting with instant delivery, reliable uptime and full control. Choose your server and get started in minutes.</p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3"><button onClick={() => go("Windows VPS")} className="rounded-xl bg-cyan-300 px-6 py-3.5 text-sm font-extrabold text-[#071638] shadow-xl shadow-cyan-500/20 transition hover:bg-cyan-200">Buy VPS <ArrowRight className="ml-2 inline" size={16}/></button><button onClick={() => go("Linux VPS")} className="rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10">Explore Linux VPS</button><button onClick={() => go("My VPS")} className="rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10">My Servers</button></div>
+              <div className="mt-12 grid grid-cols-2 gap-5 border-t border-white/15 pt-7 sm:grid-cols-4"><div><p className="text-2xl font-black">99.9%</p><p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">Network uptime target</p></div><div><p className="text-2xl font-black">SSD</p><p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">Fast storage</p></div><div><p className="text-2xl font-black">24/7</p><p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">Support</p></div><div><p className="text-2xl font-black">Secure</p><p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">Payment flow</p></div></div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-5">
-            <button
-              className="relative rounded-xl border border-slate-800 p-2.5 text-slate-400 hover:bg-slate-800 hover:text-white"
-              aria-label="Notifications"
-            >
-              <Bell size={19} />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
-            </button>
-
-            <div className="flex items-center gap-3 border-l border-slate-800 pl-3 sm:pl-5">
-              <div className="hidden text-right sm:block">
-                <p className="max-w-40 truncate text-xs font-bold">
-                  {profileLoading
-                    ? "Loading..."
-                    : profile?.name || "My Account"}
-                </p>
-                <p className="max-w-40 truncate text-[10px] text-slate-500">
-                  {profile?.email || "Account"}
-                </p>
-              </div>
-
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold">
-                {initials}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
-          {/* Global VPS feedback */}
-          {vpsMessage && (
-            <div className="mb-5 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-400">
-              {vpsMessage}
-            </div>
-          )}
-
-          {activeMenu === "Overview" ? (
-            <>
-              {/* Welcome Section */}
-              <section className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
-                <div>
-                  <p className="mb-2 text-sm text-blue-400">
-                    Welcome
-                    {profile?.name ? `, ${profile.name}` : " to 24/7"}
-                  </p>
-
-                  <h1 className="text-2xl font-bold sm:text-3xl">
-                    Dashboard Overview
-                  </h1>
-
-                  <p className="mt-2 text-sm text-slate-400">
-                    Manage your VPS, billing and account from one place.
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleMenuClick("Buy VPS")}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-blue-900/20 transition hover:bg-blue-500"
-                >
-                  <Plus size={18} />
-                  Deploy New VPS
-                </button>
-              </section>
-
-              {/* Stats Cards */}
-              <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {stats.map((stat) => {
-                  const Icon = stat.icon;
-
-                  return (
-                    <div
-                      key={stat.title}
-                      className="rounded-2xl border border-slate-800 bg-[#0d1627] p-5 transition hover:border-blue-500/40"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-slate-400">
-                            {stat.title}
-                          </p>
-                          <h3 className="mt-3 text-2xl font-bold">
-                            {stat.value}
-                          </h3>
-                        </div>
-
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                          <Icon size={23} />
-                        </div>
-                      </div>
-
-                      <p className="mt-4 text-xs text-slate-500">
-                        {stat.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </section>
-
-              {/* Quick Actions */}
-              <section className="mt-8">
-                <div className="mb-5">
-                  <h2 className="text-lg font-bold">Quick Actions</h2>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Frequently used account actions
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  <button
-                    onClick={() => handleMenuClick("Buy VPS")}
-                    className="group flex items-center justify-between rounded-2xl border border-slate-800 bg-[#0d1627] p-5 text-left transition hover:border-blue-500/50 hover:bg-[#111e34]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                        <Server size={23} />
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-semibold">
-                          Deploy New VPS
-                        </h3>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Get your new server
-                        </p>
-                      </div>
-                    </div>
-
-                    <ArrowUpRight
-                      size={18}
-                      className="text-slate-500 transition group-hover:text-blue-400"
-                    />
-                  </button>
-
-                  <button
-                    onClick={() => handleMenuClick("Wallet")}
-                    className="group flex items-center justify-between rounded-2xl border border-slate-800 bg-[#0d1627] p-5 text-left transition hover:border-blue-500/50 hover:bg-[#111e34]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10 text-green-400">
-                        <Wallet size={23} />
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-semibold">Add Funds</h3>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Manage your wallet balance
-                        </p>
-                      </div>
-                    </div>
-
-                    <ArrowUpRight
-                      size={18}
-                      className="text-slate-500 transition group-hover:text-green-400"
-                    />
-                  </button>
-
-                  <button
-                    onClick={() => handleMenuClick("Orders & Billing")}
-                    className="group flex items-center justify-between rounded-2xl border border-slate-800 bg-[#0d1627] p-5 text-left transition hover:border-blue-500/50 hover:bg-[#111e34]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
-                        <Receipt size={23} />
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-semibold">View Orders</h3>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Check your order history
-                        </p>
-                      </div>
-                    </div>
-
-                    <ArrowUpRight
-                      size={18}
-                      className="text-slate-500 transition group-hover:text-purple-400"
-                    />
-                  </button>
-                </div>
-              </section>
-
-              {/* VPS Section */}
-              <section className="mt-8">
-                <div className="mb-5 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold">My VPS Instances</h2>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Overview of your cloud servers
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => handleMenuClick("My VPS")}
-                    className="flex items-center gap-1 text-xs font-semibold text-blue-400 hover:text-blue-300"
-                  >
-                    View All
-                    <ChevronRight size={15} />
-                  </button>
-                </div>
-
-                {vpsLoading ? (
-                  <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-10 text-center">
-                    <RefreshCw
-                      className="mx-auto animate-spin text-blue-400"
-                      size={28}
-                    />
-                    <p className="mt-3 text-sm text-slate-400">
-                      Loading VPS instances...
-                    </p>
-                  </div>
-                ) : vpsError ? (
-                  <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-center">
-                    <p className="text-sm text-red-400">{vpsError}</p>
-                    <button
-                      onClick={fetchVps}
-                      className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                ) : vpsList.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-800 bg-[#0d1627] px-5 py-12 text-center sm:px-8">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
-                      <Server size={30} />
-                    </div>
-
-                    <h3 className="mt-5 text-lg font-semibold">
-                      No VPS Instances Found
-                    </h3>
-
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                      You haven't created any VPS yet. Deploy your first demo
-                      virtual private server to get started with 24/7.
-                    </p>
-
-                    <button
-                      onClick={() => handleMenuClick("Buy VPS")}
-                      className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-500"
-                    >
-                      <Plus size={17} />
-                      Deploy Demo VPS
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                    {vpsList.slice(0, 2).map(renderVpsCard)}
-                  </div>
-                )}
-              </section>
-
-              {/* Bottom Cards */}
-              <section className="mt-8 grid grid-cols-1 gap-5 xl:grid-cols-2">
-                {/* Account Information */}
-                <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-5 sm:p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                      <User size={20} />
-                    </div>
-
-                    <div>
-                      <h2 className="font-bold">Account Information</h2>
-                      <p className="text-xs text-slate-500">
-                        Your personal account details
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-5">
-                    <div className="rounded-xl border border-slate-700 bg-[#080e1b] p-4">
-                      <p className="text-xs text-slate-500">Full Name</p>
-                      <p className="mt-1 text-sm font-semibold">
-                        {profileLoading
-                          ? "Loading..."
-                          : profile?.name || "Unavailable"}
-                      </p>
-
-                      <p className="mt-4 text-xs text-slate-500">
-                        Email Address
-                      </p>
-                      <p className="mt-1 break-all text-sm font-semibold">
-                        {profile?.email || "Unavailable"}
-                      </p>
-
-                      <p className="mt-4 text-xs text-slate-500">
-                        Account Role
-                      </p>
-                      <p className="mt-1 text-sm font-semibold capitalize">
-                        {profile?.role || "Unavailable"}
-                      </p>
-
-                      <p className="mt-4 text-xs text-slate-500">
-                        Email Verification
-                      </p>
-                      <p className="mt-1 text-sm font-semibold">
-                        {profile?.emailVerifiedAt ? "Verified" : "Not verified"}
-                      </p>
-
-                      {profileError && (
-                        <p className="mt-3 text-xs text-red-400">
-                          {profileError}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-[#080e1b] p-4">
-                      <div className="flex items-center gap-3">
-                        <ShieldCheck className="text-green-400" size={20} />
-                        <div>
-                          <p className="text-sm font-semibold">
-                            Account Status
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            Your account availability
-                          </p>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          profile?.isActive
-                            ? "bg-green-500/10 text-green-400"
-                            : "bg-slate-700 text-slate-400"
-                        }`}
-                      >
-                        {profileLoading
-                          ? "Loading"
-                          : profile?.isActive
-                            ? "Active"
-                            : "Unavailable"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Resource Information */}
-                <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-5 sm:p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
-                      <Activity size={20} />
-                    </div>
-
-                    <div>
-                      <h2 className="font-bold">Resource Overview</h2>
-                      <p className="text-xs text-slate-500">
-                        Your VPS resource information
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-5">
-                    {[
-                      { name: "CPU Usage", value: "No data", icon: Cpu },
-                      {
-                        name: "Memory Usage",
-                        value: "No data",
-                        icon: MemoryStick,
-                      },
-                      {
-                        name: "Storage Usage",
-                        value: "No data",
-                        icon: HardDrive,
-                      },
-                      { name: "Network Usage", value: "No data", icon: Globe },
-                    ].map((resource) => {
-                      const Icon = resource.icon;
-
-                      return (
-                        <div key={resource.name}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-slate-300">
-                              <Icon size={17} className="text-slate-500" />
-                              {resource.name}
-                            </div>
-
-                            <span className="text-xs text-slate-500">
-                              {resource.value}
-                            </span>
-                          </div>
-
-                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-                            <div className="h-full w-0 rounded-full bg-blue-500" />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
-                    <div className="flex items-start gap-3">
-                      <Zap
-                        size={19}
-                        className="mt-0.5 shrink-0 text-blue-400"
-                      />
-                      <p className="text-xs leading-5 text-slate-400">
-                        VPS resource monitoring will be available once your
-                        server is connected to a real provider.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Account Security */}
-              <section className="mt-8 rounded-2xl border border-slate-800 bg-[#0d1627] p-5 sm:p-6">
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/10 text-green-400">
-                      <ShieldCheck size={22} />
-                    </div>
-
-                    <div>
-                      <h2 className="font-bold">Account Security</h2>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Keep your 24/7 account secure.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleMenuClick("Settings")}
-                    className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
-                  >
-                    Manage Settings
-                    <ArrowUpRight size={15} />
-                  </button>
-                </div>
-              </section>
-
-              {/* Footer */}
-              <footer className="mt-10 flex flex-col justify-between gap-3 border-t border-slate-800 pt-6 text-xs text-slate-500 sm:flex-row">
-                <p>
-                  © {new Date().getFullYear()} 24/7. All rights reserved.
-                </p>
-                <p>Powering your cloud infrastructure.</p>
-              </footer>
-            </>
-          ) : activeMenu === "My VPS" ? (
-            /* My VPS Page */
-            <section>
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold">My VPS Instances</h1>
-                  <p className="mt-2 text-sm text-slate-400">
-                    Manage and control your cloud servers.
-                  </p>
-                </div>
-
-                <button
-                  onClick={fetchVps}
-                  disabled={vpsLoading}
-                  className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-3 text-sm transition hover:bg-slate-800 disabled:opacity-50"
-                >
-                  <RefreshCw
-                    size={16}
-                    className={vpsLoading ? "animate-spin" : ""}
-                  />
-                  Refresh
-                </button>
-              </div>
-
-              {vpsError && (
-                <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
-                  {vpsError}
-                </div>
-              )}
-
-              {vpsMessage && (
-                <div className="mb-5 rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm text-green-400">
-                  {vpsMessage}
-                </div>
-              )}
-
-              {vpsLoading ? (
-                <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-12 text-center">
-                  <RefreshCw
-                    size={28}
-                    className="mx-auto animate-spin text-blue-400"
-                  />
-                  <p className="mt-3 text-sm text-slate-400">
-                    Loading your VPS instances...
-                  </p>
-                </div>
-              ) : vpsList.length === 0 ? (
-                <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-10 text-center">
-                  <Server size={35} className="mx-auto text-blue-400" />
-                  <h2 className="mt-4 text-lg font-bold">No VPS Found</h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    You don't have any VPS instances yet.
-                  </p>
-                  <button
-                    onClick={() => handleMenuClick("Buy VPS")}
-                    className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold hover:bg-blue-500"
-                  >
-                    <Plus size={16} className="mr-2 inline" />
-                    Deploy Demo VPS
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-                  {vpsList.map(renderVpsCard)}
-                </div>
-              )}
-            </section>
-          ) : activeMenu === "Buy VPS" ? (
-            /* Buy VPS Page */
-            <section className="mx-auto max-w-3xl">
-              <div className="rounded-2xl border border-slate-800 bg-[#0d1627] p-6 sm:p-8">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                    <Server size={25} />
-                  </div>
-
-                  <div>
-                    <h1 className="text-xl font-bold">Deploy Demo VPS</h1>
-                    <p className="text-xs text-slate-400">
-                      24/7 demonstration environment
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-7 rounded-xl border border-slate-700 bg-[#080e1b] p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="font-semibold">
-                      Demo VPS Configuration
-                    </h2>
-                    <span className="rounded-full bg-yellow-500/10 px-3 py-1 text-xs text-yellow-400">
-                      DEMO MODE
-                    </span>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-2 gap-5 text-sm">
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Operating System
-                      </p>
-                      <p className="mt-1 font-semibold">Ubuntu 22.04</p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-500">Memory</p>
-                      <p className="mt-1 font-semibold">4 GB RAM</p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-500">Provisioning</p>
-                      <p className="mt-1 font-semibold">
-                        Instant (Simulated)
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-500">Validity</p>
-                      <p className="mt-1 font-semibold">30 Days</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4">
-                  <p className="text-xs leading-5 text-yellow-400">
-                    This is a simulated VPS for demonstration. It does not
-                    create a real internet-accessible server and does not
-                    charge your wallet.
-                  </p>
-                </div>
-
-                {vpsError && (
-                  <p className="mt-4 text-sm text-red-400">{vpsError}</p>
-                )}
-
-                <button
-                  onClick={provisionDemoVps}
-                  disabled={provisionLoading}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {provisionLoading ? (
-                    <>
-                      <RefreshCw size={18} className="animate-spin" />
-                      Provisioning...
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={18} />
-                      Deploy Demo VPS
-                    </>
-                  )}
-                </button>
-              </div>
-            </section>
-          ) : (
-            /* Other Pages */
-            <section className="rounded-2xl border border-slate-800 bg-[#0d1627] px-5 py-16 text-center sm:px-8">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
-                {activeMenu === "Wallet" && <Wallet size={30} />}
-                {activeMenu === "Orders & Billing" && (
-                  <CreditCard size={30} />
-                )}
-                {activeMenu === "Support" && <Headphones size={30} />}
-                {activeMenu === "Settings" && <Settings size={30} />}
-              </div>
-
-              <h2 className="mt-5 text-xl font-bold">{activeMenu}</h2>
-
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                This section is ready for the next development step. Its
-                functionality will be connected to the 24/7 backend.
-              </p>
-
-              <button
-                onClick={() => handleMenuClick("Overview")}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold hover:bg-blue-500"
-              >
-                Back to Overview
-              </button>
-            </section>
-          )}
-        </div>
+          </section>}
+          <section className="pt-12 sm:pt-14"><div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-cyan-300">Choose your server</p><h2 className="mt-2 text-2xl font-black sm:text-3xl">{page === "Home" ? "Explore VPS Plans" : page === "Windows VPS" ? "Windows VPS Plans" : "Linux VPS Plans"}</h2><p className="mt-2 text-sm text-slate-400">All plans include full control panel, SSD storage and 24×7 support.</p></div><div className="flex gap-2"><button onClick={() => go("Windows VPS")} className={`rounded-full border px-4 py-2 text-xs font-bold ${page === "Windows VPS" ? "border-cyan-300 bg-cyan-300/10 text-cyan-100" : "border-blue-900 text-slate-300"}`}>Windows</button><button onClick={() => go("Linux VPS")} className={`rounded-full border px-4 py-2 text-xs font-bold ${page === "Linux VPS" ? "border-cyan-300 bg-cyan-300/10 text-cyan-100" : "border-blue-900 text-slate-300"}`}>Linux</button></div></div>
+            {plansLoading ? <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{[1,2,3,4].map((i)=><div key={i} className="h-[390px] animate-pulse rounded-2xl border border-blue-900 bg-[#0b1531]"/>)}</div> : visiblePlans.length ? <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{visiblePlans.map((plan,index)=><PlanCard key={plan.id} plan={plan} index={index}/>)}</div> : <div className="rounded-2xl border border-blue-900/70 bg-[#0b1531]/80 px-6 py-12 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-cyan-300"><Server size={26}/></div><h3 className="mt-4 text-lg font-bold">VPS plans will appear here</h3><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">{plansError || "Our team is updating the available server plans. Please check again shortly."}</p><button onClick={fetchPlans} className="mt-5 inline-flex items-center gap-2 rounded-lg border border-blue-800 px-4 py-2 text-xs font-bold text-cyan-200 hover:bg-blue-900/40"><RefreshCw size={14}/> Refresh plans</button></div>}
+          </section>
+          <section className="mt-12 grid gap-4 rounded-2xl border border-blue-900/60 bg-[#08132d]/80 p-6 sm:grid-cols-3 sm:p-8"><div className="flex gap-3"><ShieldCheck className="shrink-0 text-cyan-300"/><div><h3 className="text-sm font-bold">Secure & reliable</h3><p className="mt-1 text-xs leading-5 text-slate-400">Protected customer account and verified payment flow.</p></div></div><div className="flex gap-3"><Zap className="shrink-0 text-cyan-300"/><div><h3 className="text-sm font-bold">Fast deployment</h3><p className="mt-1 text-xs leading-5 text-slate-400">Order processing and server provisioning status in one place.</p></div></div><div className="flex gap-3"><Headphones className="shrink-0 text-cyan-300"/><div><h3 className="text-sm font-bold">24/7 assistance</h3><p className="mt-1 text-xs leading-5 text-slate-400">Get help with billing, setup and server operations.</p></div></div></section>
+        </>}
+
+        {page === "My VPS" && <section className="pt-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">Customer area</p><h1 className="mt-2 text-3xl font-black">My Servers</h1><p className="mt-2 text-sm text-slate-400">Manage your VPS instances and server status.</p></div><button onClick={fetchVps} className="inline-flex items-center gap-2 rounded-xl border border-blue-800 px-4 py-3 text-xs font-bold text-cyan-200"><RefreshCw size={15}/> Refresh</button></div><div className="mt-7 grid gap-4 sm:grid-cols-3"><div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5"><p className="text-xs text-slate-400">Total servers</p><p className="mt-2 text-3xl font-black">{vpsList.length}</p></div><div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5"><p className="text-xs text-slate-400">Running</p><p className="mt-2 text-3xl font-black text-emerald-300">{activeCount}</p></div><div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5"><p className="text-xs text-slate-400">Stopped / Other</p><p className="mt-2 text-3xl font-black">{vpsList.length-activeCount}</p></div></div>{loading ? <p className="py-12 text-center text-sm text-slate-400">Loading servers…</p> : vpsList.length ? <div className="mt-6 grid gap-4 lg:grid-cols-2">{vpsList.map((vps)=><article key={vps.id} className="rounded-2xl border border-blue-900/70 bg-[#0b1531] p-5"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><div className="rounded-xl bg-blue-500/15 p-3 text-cyan-300"><Server size={20}/></div><div><h3 className="font-bold">{vps.hostname || "VPS Server"}</h3><p className="text-xs text-slate-500">{vps.provider}</p></div></div><span className={`rounded-full px-3 py-1 text-[10px] font-bold ${vps.status === "RUNNING" ? "bg-emerald-400/10 text-emerald-300" : "bg-slate-700 text-slate-300"}`}>{vps.status}</span></div><div className="mt-5 grid grid-cols-2 gap-4 border-y border-blue-900/60 py-4 text-sm"><div><p className="text-[10px] text-slate-500">IP ADDRESS</p><p className="mt-1 font-semibold text-cyan-200">{vps.ipAddress}</p></div><div><p className="text-[10px] text-slate-500">OPERATING SYSTEM</p><p className="mt-1">{vps.operatingSystem || "—"}</p></div><div><p className="text-[10px] text-slate-500">MEMORY</p><p className="mt-1">{vps.ram ?? "—"} GB RAM</p></div><div><p className="text-[10px] text-slate-500">EXPIRES</p><p className="mt-1">{vps.expiresAt ? new Date(vps.expiresAt).toLocaleDateString() : "—"}</p></div></div><button disabled={actionLoading === vps.id} onClick={()=>handleVpsAction(vps.id,vps.status === "RUNNING" ? "stop" : "start")} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold disabled:opacity-50 ${vps.status === "RUNNING" ? "bg-red-500/10 text-red-300 hover:bg-red-500/20" : "bg-emerald-500 text-[#031a16] hover:bg-emerald-400"}`}>{actionLoading === vps.id ? <RefreshCw size={16} className="animate-spin"/> : <Zap size={16}/>} {vps.status === "RUNNING" ? "Stop Server" : "Start Server"}</button></article>)}</div> : <div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-12 text-center"><Server className="mx-auto text-cyan-300" size={34}/><h3 className="mt-4 text-lg font-bold">No VPS servers yet</h3><p className="mt-2 text-sm text-slate-400">Choose a plan to get your first server.</p><button onClick={()=>go("Windows VPS")} className="mt-5 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]">Browse VPS Plans</button></div>}</section>}
+
+        {page === "Wallet" && <section className="mx-auto max-w-3xl pt-12"><p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">Billing</p><h1 className="mt-2 text-3xl font-black">My Wallet</h1><div className="mt-7 rounded-3xl border border-blue-700/60 bg-gradient-to-br from-blue-800 to-[#071b48] p-8"><Wallet className="text-cyan-200" size={28}/><p className="mt-5 text-sm text-blue-100">Available balance</p><p className="mt-1 text-4xl font-black">₹0.00</p><p className="mt-3 text-xs text-blue-200/70">Wallet balance integration will appear once the wallet API is enabled.</p></div></section>}
+        {page === "Orders" && <section className="pt-12"><p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">Billing history</p><h1 className="mt-2 text-3xl font-black">Orders & Billing</h1><div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-10 text-center"><CreditCard className="mx-auto text-cyan-300" size={32}/><h3 className="mt-4 font-bold">Your orders will appear here</h3><p className="mt-2 text-sm text-slate-400">Order history and invoices are being connected to the customer API.</p></div></section>}
+        {page === "Support" && <section className="mx-auto max-w-3xl pt-12"><p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">We are here to help</p><h1 className="mt-2 text-3xl font-black">24/7 Customer Support</h1><div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-7"><Headphones className="text-cyan-300" size={30}/><h3 className="mt-4 text-lg font-bold">Need help with your VPS?</h3><p className="mt-2 text-sm leading-6 text-slate-400">Contact our support team for assistance with orders, payments and server management.</p><a href="mailto:support@247hrservice.com" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]">Contact Support <ArrowUpRight size={16}/></a></div></section>}
       </main>
+
+      <footer className="relative z-10 border-t border-blue-900/50 bg-[#04091a]"><div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-4 px-4 py-7 text-xs text-slate-500 sm:flex-row sm:items-center sm:px-6 lg:px-10"><div className="flex items-center gap-2"><img src={logo} alt="24/7" className="h-7 w-7 object-contain"/><span>© {new Date().getFullYear()} 24/7 HR Service. All rights reserved.</span></div><div className="flex flex-wrap gap-4"><button onClick={()=>go("Support")} className="hover:text-cyan-200">Contact</button><button onClick={()=>go("Wallet")} className="hover:text-cyan-200">Wallet</button><button onClick={()=>go("My VPS")} className="hover:text-cyan-200">My Servers</button></div></div></footer>
+
+      {selectedPlan && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#020617]/85 p-3 backdrop-blur-md sm:p-6" onMouseDown={(e)=>{if(e.target===e.currentTarget)setSelectedPlan(null);}}><div className="my-auto w-full max-w-xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-[#0a1430] shadow-[0_25px_100px_rgba(0,0,0,.65)]"><div className="flex items-start justify-between border-b border-blue-900/70 px-5 py-5 sm:px-7"><div><p className="text-[10px] font-bold uppercase tracking-[.22em] text-cyan-300">Windows / Linux VPS · Checkout</p><h2 className="mt-1 text-2xl font-black">Complete Your Order</h2><p className="mt-1 text-xs text-slate-400">Review your server configuration and payment option.</p></div><button onClick={()=>setSelectedPlan(null)} className="rounded-lg border border-blue-900 p-2 text-slate-400 hover:text-white" aria-label="Close checkout"><X size={18}/></button></div><div className="space-y-5 p-5 sm:p-7"><div className="rounded-2xl border border-blue-900 bg-[#101e43] p-4"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] uppercase tracking-wider text-slate-400">Selected plan</p><h3 className="mt-1 font-bold">{selectedPlan.name}</h3></div><span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-bold text-emerald-300">Available</span></div><div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-300"><span>{selectedPlan.cpuCores ?? "—"} vCPU</span><span>{selectedPlan.ramGb ?? "—"} GB RAM</span><span>{selectedPlan.storageGb ?? "—"} GB SSD</span><span>{selectedPlan.bandwidthGb ?? "—"} GB bandwidth</span></div></div><div><label className="mb-2 block text-xs font-bold text-slate-300">Select Operating System</label><select value={selectedOS} onChange={(e)=>setSelectedOS(e.target.value)} className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm text-white outline-none focus:border-cyan-300">{(selectedPlan.supportedOS?.length ? selectedPlan.supportedOS : ["Ubuntu 22.04"]).map((os)=><option key={os} value={os}>{os}</option>)}</select></div><div className="flex gap-2"><input value={coupon} onChange={(e)=>setCoupon(e.target.value)} placeholder="Coupon code (optional)" className="min-w-0 flex-1 rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300"/><button disabled className="rounded-xl border border-blue-700 px-5 text-xs font-bold text-slate-500" title="Coupon API is not connected yet">Apply</button></div><div><p className="mb-3 text-xs font-bold text-slate-300">Select Payment Method</p><div className="grid grid-cols-2 gap-3"><button onClick={()=>setPaymentMethod("WALLET")} className={`rounded-xl border p-4 text-left ${paymentMethod === "WALLET" ? "border-cyan-300 bg-cyan-300/10" : "border-blue-900 bg-[#07122c]"}`}><Wallet size={19} className="text-cyan-300"/><p className="mt-2 text-sm font-bold">Wallet Pay</p><p className="mt-1 text-[10px] text-slate-500">Use available balance</p></button><button onClick={()=>setPaymentMethod("RAZORPAY")} className={`rounded-xl border p-4 text-left ${paymentMethod === "RAZORPAY" ? "border-cyan-300 bg-cyan-300/10" : "border-blue-900 bg-[#07122c]"}`}><CreditCard size={19} className="text-cyan-300"/><p className="mt-2 text-sm font-bold">Razorpay</p><p className="mt-1 text-[10px] text-slate-500">UPI · Cards · Netbanking</p></button></div></div><div className="rounded-2xl border border-blue-900 bg-[#101e43] p-4"><div className="flex items-center justify-between text-xs text-slate-400"><span>Original price</span><span>{money(selectedPlan.price, selectedPlan.currency || "INR")}</span></div><div className="mt-3 flex items-center justify-between"><span className="text-sm font-bold">Total Payable</span><span className="text-2xl font-black text-cyan-200">{money(selectedPlan.price, selectedPlan.currency || "INR")}<span className="ml-1 text-[10px] font-medium text-slate-400">/ {selectedPlan.durationDays === 30 ? "mo" : `${selectedPlan.durationDays || 30} days`}</span></span></div></div><button disabled className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-4 text-sm font-black text-[#06132d] opacity-60" title="Payment will be enabled after backend order and payment verification APIs are connected">{paymentMethod === "WALLET" ? <Wallet size={17}/> : <LockKeyhole size={17}/>} Payment integration pending</button><p className="text-center text-[10px] leading-5 text-slate-500">No payment will be collected until secure backend order creation and payment verification are connected.</p></div></div></div>}
     </div>
   );
 }
