@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 
 import api from "./api";
+import logo from "./assets/247-logo.png";
 
 type UserProfile = {
   id: string;
@@ -230,7 +231,7 @@ export default function Dashboard() {
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "IC";
+    : "24";
 
   const activeVpsCount = vpsList.filter(
     (vps) => vps.status === "RUNNING"
@@ -380,17 +381,17 @@ export default function Dashboard() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Logo */}
-        <div className="flex h-20 items-center justify-between border-b border-slate-800 px-6">
+        {/* 24/7 Brand Logo */}
+        <div className="flex h-20 items-center justify-between border-b border-slate-800 px-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
-              <Server size={22} />
-            </div>
+            <img
+              src={logo}
+              alt="24/7 Hours Service"
+              className="h-12 w-12 shrink-0 rounded-xl object-contain"
+            />
 
             <div>
-              <h1 className="text-xl font-bold tracking-wide">
-                Indic<span className="text-blue-500">Cloud</span>
-              </h1>
+              <h1 className="text-xl font-bold tracking-wide">24/7</h1>
               <p className="text-[10px] tracking-[2px] text-slate-500">
                 VPS HOSTING
               </p>
